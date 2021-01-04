@@ -4,7 +4,6 @@ dotenv.config();
 
 import { Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
-
 import DocumentDAO from './DocumentDAO';
 import GraphDAO from './GraphDAO';
 import { Liked, likedValues } from './Model';
@@ -20,70 +19,68 @@ function stripMargin(template: TemplateStringsArray, ...expressions: any[]) {
   return result.replace(/(\n|\r|\r\n)\s*\|/g, '$1');
 }
 
-function buildLikeKeyboard(movieId: string, currentLike?: Liked): InlineKeyboardMarkup {
+function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboardMarkup {
   return {
-    inline_keyboard: [
-      likedValues.map((v) => ({
-        text: currentLike && currentLike.rank === v ? "★".repeat(v) : "☆".repeat(v),
-        callback_data: v + '__' + movieId, // payload that will be retrieved when button is pressed
-      })),
-    ],
+    inline_keyboard: [[
+      {
+        text: "Love it! 💓",
+        callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
+      },
+    ]],
   }
+}
+
+function formatQuote(content: string, author: string): string {
+  return '*' + content + '*\n\n_' + author + '_'
 }
 
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
-  const query = ctx.inlineQuery;
-  if (query) {
-    const movies = await documentDAO.getMovies(query.query);
-    const answer: InlineQueryResultArticle[] = movies.map((movie) => ({
-      id: movie._id,
-      type: 'article',
-      title: movie.title,
-      description: movie.description,
-      reply_markup: buildLikeKeyboard(movie._id),
-      input_message_content: {
-        message_text: stripMargin`
-          |Title: ${movie.title}
-          |Description: ${movie.description},
-          |Year: ${movie.year}
-          |Actors: ${movie.actors}
-          |Genres: ${movie.genre}
-        `
-      },
-    }));
-    ctx.answerInlineQuery(answer);
-  }
+  // TODO: Uncomment when DAO is ready
+  
+  // const query = ctx.inlineQuery;
+  // if (query) {
+  //   const quotes = await documentDAO.getQuotes(query.query);
+  //   const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
+  //     id: quote._id,
+  //     type: 'article',
+  //     title: quote.author,
+  //     description: quote.content,
+  //     reply_markup: buildLikeKeyboard(quote._id),
+  //     input_message_content: {
+  //       message_text: formatQuote(quote.content, quote.author)
+  //     },
+  //   }));
+  //   ctx.answerInlineQuery(answer);
+  // }
 });
 
 // User chose a movie from the list displayed in the inline query
 // Used to update the keyboard and show filled stars if user already liked it
 bot.on('chosen_inline_result', async (ctx) => {
-  if (ctx.from && ctx.chosenInlineResult) {
-    const liked = await graphDAO.getMovieLiked(ctx.from.id, ctx.chosenInlineResult.result_id);
-    if (liked !== null) {
-      ctx.editMessageReplyMarkup(buildLikeKeyboard(ctx.chosenInlineResult.result_id, liked));
-    }
-  }
+
+  // TODO: decide if we need something similar
+
+  // if (ctx.from && ctx.chosenInlineResult) {
+  //   const liked = await graphDAO.getMovieLiked(ctx.from.id, ctx.chosenInlineResult.result_id);
+  //   if (liked !== null) {
+  //     ctx.editMessageReplyMarkup(buildLikeKeyboard(ctx.chosenInlineResult.result_id, liked));
+  //   }
+  // }
 });
+
+function likeCallbackHandler(args: string[]) {
+  // TODO: call Geo4J backend
+}
 
 bot.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery && ctx.from) {
-    const [rank, movieId] = ctx.callbackQuery.data.split('__');
-    console.log(rank, movieId);
-    const liked: Liked = {
-      rank: parseInt(rank, 10),
-      at: new Date()
-    };
-    await graphDAO.upsertMovieLiked({
-      first_name: 'unknown',
-      last_name: 'unknown',
-      language_code: 'fr',
-      is_bot: false,
-      username: 'unknown',
-      ...ctx.from,
-    }, movieId, liked);
-    ctx.editMessageReplyMarkup(buildLikeKeyboard(movieId, liked));
+    const args = ctx.callbackQuery.data.split('__');
+    
+    switch (args[0]) {
+      case 'like':
+        likeCallbackHandler(args)
+    }
   }
 });
 
@@ -95,24 +92,14 @@ TODO
 });
 
 bot.command('start', (ctx) => {
-  ctx.reply('You\'re doing quite well.\n\nGlaDOS (ironically)');
+  ctx.replyWithMarkdown('*You\'re doing quite well.*\n\n_GlaDOS (ironically)_');
 });
 
-bot.command('recommendactor', (ctx) => {
+bot.command('recommendquote', (ctx) => {
   if (!ctx.from || !ctx.from.id) {
     ctx.reply('We cannot guess who you are');
   } else {
-    graphDAO.recommendActors(ctx.from.id).then((records) => {
-      if (records.length === 0) ctx.reply("You haven't liked enough movies to have recommendations");
-      else {
-        const actorsList = records.map((record) => {
-          const name = record.get('a').properties.name;
-          const count = record.get('count(*)').toInt();
-          return `${name} (${count})`;
-        }).join("\n\t");
-        ctx.reply(`Based your like and dislike we recommend the following actor(s):\n\t${actorsList}`);
-      }
-    });
+    // TODO: call Geo4J (and MongoDB?) backend
   }
 });
 

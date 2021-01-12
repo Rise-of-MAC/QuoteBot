@@ -1,52 +1,58 @@
 import { Collection, Db, MongoClient } from "mongodb";
-import { Movie } from "./Model";
+import { Quote } from "./Model";
+// import * as dotenv from "dotenv";
+
 
 class DocumentDAO {
 
-  private client: MongoClient;
+    private DB_HOST : string = "root:toor@localhost:27017"
+    private DB_NAME : string = "quote-db"
+    private client: MongoClient;
 
-  private db: Db;
+    private db: Db;
 
-  private collection: Collection;
+    private collection: Collection;
 
-  async init(): Promise<any> {
-    return new Promise((resolve) => {
-      MongoClient.connect(`mongodb://${process.env.DOCUMENTDB_HOST}`, (err, client) => {
-        if (err !== null) throw err;
-        this.client = client;
-        this.db = client.db(process.env.DOCUMENTDB_NAME);
-        this.collection = this.db.collection('movies-mac');
-        resolve(null);
-      });
-    });
-  }
+    async init(): Promise<any> {
 
-  async close() {
-    await this.client.close();
-  }
+        return new Promise((resolve) => {
+            MongoClient.connect('mongodb://'+ this.DB_HOST, (err, client) => {
+                if (err !== null) throw err;
+                this.client = client;
+                this.db = client.db(this.DB_NAME);
+                this.collection = this.db.collection('quote-db');
+                this.db.dropDatabase();
+                resolve(null);
+            });
+        });
+    }
 
-  async insertMovie(movie: Partial<Movie>) {
-    await this.collection.insertOne(movie);
-  }
+    async close() {
+        await this.client.close();
+    }
 
-  async getMovies(search: string): Promise<Movie[]> {
-    return await this.collection.find({ 'title': new RegExp(search) }).limit(10).toArray();
-  }
+    async insertQuote(quote: Partial<Quote>) {
+        await this.collection.insertOne(quote);
+    }
 
-  async getMovieById(id: string) {
-    return await this.collection.findOne({ _id: id });
-  }
+    async getQuotes(search: string): Promise<Quote[]> {
+        return await this.collection.find({ 'text': new RegExp(search) }).limit(10).toArray();
+    }
 
-  async getRandomMovies(n: number) {
-    return await this.collection.find().limit(n).toArray();
-  }
+    async getQuoteById(id: string) {
+        return await this.collection.findOne({ _id: id });
+    }
 
-  async getAllMovies(): Promise<Movie[]> {
-    return (await this.collection.find().toArray()).map((it) => ({
-      ...it,
-      _id: it._id.toString()
-    }));
-  }
+    async getRandomQuote(n: number) {
+        return await this.collection.find().limit(n).toArray();
+    }
+
+    async getAllQuotes(): Promise<Quote[]> {
+        return (await this.collection.find().toArray()).map((it) => ({
+            ...it,
+            _id: it._id.toString()
+        }));
+    }
 }
 
 export default DocumentDAO;

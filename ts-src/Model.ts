@@ -10,7 +10,6 @@ export type Quote = {
 
 
 export type Author = {
-  id: number;
   name: string;
 }
 

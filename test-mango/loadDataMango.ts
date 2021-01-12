@@ -1,11 +1,8 @@
-import * as dotenv from 'dotenv';
 import parse from 'csv-parse';
 import { join } from 'path';
 const fs = require('fs')
 import { Quote } from "./Model";
 import DocumentDAO from "./DocumentDAO";
-
-dotenv.config();
 
 const documentDAO = new DocumentDAO();
 
@@ -22,6 +19,7 @@ const parseMovies = async (): Promise<any[]> => new Promise((resolve) => {
 
 (async () => {
 
+    console.log("starting!..");
     await documentDAO.init();
 
     await parseMovies().then((data:string[]) => {

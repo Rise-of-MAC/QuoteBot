@@ -24,7 +24,7 @@ const parseMovies = async (): Promise<any[]> => new Promise((resolve) => {
 
     await documentDAO.init();
 
-    const parsedMovies = await parseMovies().then((data:string[]) => {
+    await parseMovies().then((data:string[]) => {
         // Start at 1 because of headers in data
         for (let i = 1; i < data.length; i++) {
             const quote : Quote = {

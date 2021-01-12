@@ -48,20 +48,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_1 = require("mongodb");
+// import * as dotenv from "dotenv";
 var DocumentDAO = /** @class */ (function () {
     function DocumentDAO() {
+        this.DB_HOST = "root:toor@localhost:27017";
+        this.DB_NAME = "quote-db";
     }
     DocumentDAO.prototype.init = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve) {
-                        mongodb_1.MongoClient.connect("mongodb://" + process.env.DOCUMENTDB_HOST, function (err, client) {
+                        mongodb_1.MongoClient.connect('mongodb://' + _this.DB_HOST, function (err, client) {
                             if (err !== null)
                                 throw err;
                             _this.client = client;
-                            _this.db = client.db(process.env.DOCUMENTDB_NAME);
-                            _this.collection = _this.db.collection('movies-mac');
+                            _this.db = client.db(_this.DB_NAME);
+                            _this.collection = _this.db.collection('quote-db');
+                            _this.db.dropDatabase();
                             resolve(null);
                         });
                     })];
@@ -80,11 +84,11 @@ var DocumentDAO = /** @class */ (function () {
             });
         });
     };
-    DocumentDAO.prototype.insertMovie = function (movie) {
+    DocumentDAO.prototype.insertQuote = function (quote) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.collection.insertOne(movie)];
+                    case 0: return [4 /*yield*/, this.collection.insertOne(quote)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -92,17 +96,17 @@ var DocumentDAO = /** @class */ (function () {
             });
         });
     };
-    DocumentDAO.prototype.getMovies = function (search) {
+    DocumentDAO.prototype.getQuotes = function (search) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.collection.find({ 'title': new RegExp(search) }).limit(10).toArray()];
+                    case 0: return [4 /*yield*/, this.collection.find({ 'quote': new RegExp(search) }).limit(10).toArray()];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
     };
-    DocumentDAO.prototype.getMovieById = function (id) {
+    DocumentDAO.prototype.getQuoteById = function (id) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -112,7 +116,7 @@ var DocumentDAO = /** @class */ (function () {
             });
         });
     };
-    DocumentDAO.prototype.getRandomMovies = function (n) {
+    DocumentDAO.prototype.getRandomQuote = function (n) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -122,7 +126,7 @@ var DocumentDAO = /** @class */ (function () {
             });
         });
     };
-    DocumentDAO.prototype.getAllMovies = function () {
+    DocumentDAO.prototype.getAllQuotes = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {

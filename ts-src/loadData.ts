@@ -61,6 +61,9 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     console.log('Loading quotes back in memory');
     const quotes = await documentDAO.getAllQuotes();
 
+    for(let quote of quotes){
+        console.log(quote)
+    }
     // TODO : Neo4j stufffff
     // Retrieve all genres and actors from all movies, split them and assign a numeric id
     console.log('Calculating author');

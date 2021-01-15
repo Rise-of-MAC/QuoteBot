@@ -45,10 +45,6 @@ class MangoDataLoader {
                 this.documentDAO.insertQuote(quote);
             }
         });
-        const allQuotes = await this.documentDAO.getAllQuotes();
-        for(let quote of allQuotes){
-            console.log(quote)
-        }
     }
 }
 export default MangoDataLoader;

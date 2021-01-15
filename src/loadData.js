@@ -1,68 +1,58 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as dotenv from 'dotenv';
-import parse from 'csv-parse';
-import { promises as fs } from 'fs';
 import cliProgress from 'cli-progress';
-import { join } from 'path';
-
 import DocumentDAO from "./DocumentDAO";
 import GraphDAO from "./GraphDAO";
-import { Quote, User } from "./Model";
 import MangoDataLoader from "./loadDataMango";
-
 dotenv.config();
-
-const buildUser = (id: number, username: string, first_name: string, last_name: string, language_code: string, is_bot: boolean): User => ({
-  id,
-  username,
-  first_name,
-  last_name,
-  language_code,
-  is_bot
+const buildUser = (id, username, first_name, last_name, language_code, is_bot) => ({
+    id,
+    username,
+    first_name,
+    last_name,
+    language_code,
+    is_bot
 });
-
-const shuffle = (array: any[]): any[] => {
-
-  for(let i = array.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * i);
-    const temp = array[i];
-    array[i] = array[j];
-    array[j] = temp;
-  }
-
-  return array;
+const shuffle = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * i);
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
 };
-
-const users: User[] = [
-  buildUser(220987852, 'mle', 'Maurice', 'Lehmann', 'fr', false),
-  buildUser(136451861, 'thrudhvangr', 'christopher', '', 'fr', false),
-  buildUser(136451862, 'NukedFace', 'marcus', '', 'fr', false),
+const users = [
+    buildUser(220987852, 'mle', 'Maurice', 'Lehmann', 'fr', false),
+    buildUser(136451861, 'thrudhvangr', 'christopher', '', 'fr', false),
+    buildUser(136451862, 'NukedFace', 'marcus', '', 'fr', false),
 ];
-
 const graphDAO = new GraphDAO();
 const documentDAO = new DocumentDAO();
 const mangoDataLoader = new MangoDataLoader(documentDAO);
-
-(async () => {
+(() => __awaiter(void 0, void 0, void 0, function* () {
     console.log('Starting mongo');
-    await documentDAO.init();
-
+    yield documentDAO.init();
     console.log('Preparing Neo4j');
-    await graphDAO.prepare();
-
+    yield graphDAO.prepare();
     console.log('Writing users to neo4j');
-    await Promise.all(users.map((user) => graphDAO.upsertUser(user)));
-
-
+    yield Promise.all(users.map((user) => graphDAO.upsertUser(user)));
     //Write movies in Mango
     console.log('Parsing CSV and writing movies to mongo');
-    await mangoDataLoader.load('../data/quotes_dataset.csv')
-
+    yield mangoDataLoader.load('../data/quotes_dataset.csv');
     //Load them back to get their id along
     console.log('Loading quotes back in memory');
-    const quotes = await documentDAO.getAllQuotes();
-
-    for(let quote of quotes){
-        console.log(quote)
+    const quotes = yield documentDAO.getAllQuotes();
+    for (let quote of quotes) {
+        console.log(quote);
     }
     // TODO : Neo4j stufffff :'(
     // Retrieve all tags and authors from all quotes, split them and assign a numeric id
@@ -74,25 +64,21 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     const quotesBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     quotesBar.start(quotes.length, 0);
     for (let quote of quotes) {
-      const quoteTags = quote.tags.split(',').map(i => i.trim());;
-    
-      await graphDAO.upsertQuote(quote._id);
-    
-      // Update tags <-> quote links
-      await Promise.all(quoteTags.map((name) => {
-        const id = tags.find((it) => it[1] === name)[0] as number;
-        return graphDAO.upsertTag(quote._id, { id, name });
-      }));
-
-      // Update authors <-> quote links
-      const name = quote.author;
-      const id = authors.find((it) => it[1] === name)[0] as number;
-      await graphDAO.upsertAuthor(quote._id, { id, name})
-
-      quotesBar.increment();
+        const quoteTags = quote.tags.split(',').map(i => i.trim());
+        ;
+        yield graphDAO.upsertQuote(quote._id);
+        // Update tags <-> quote links
+        yield Promise.all(quoteTags.map((name) => {
+            const id = tags.find((it) => it[1] === name)[0];
+            return graphDAO.upsertTag(quote._id, { id, name });
+        }));
+        // Update authors <-> quote links
+        const name = quote.author;
+        const id = authors.find((it) => it[1] === name)[0];
+        yield graphDAO.upsertAuthor(quote._id, { id, name });
+        quotesBar.increment();
     }
     quotesBar.stop();
-    
     // // Add some films added by users
     // console.log('Add some films liked by users');
     // const addedPromise = [400, 87, 0, 34, 58].flatMap((quantity, index) => {
@@ -156,4 +142,4 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     //   documentDAO.close(),
     //   graphDAO.close()
     // ]);
-})();
+}))();

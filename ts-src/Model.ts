@@ -1,7 +1,7 @@
 export type Quote = {
   _id: string;
   text: string;
-  author: Author;
+  author: string;
   tags: string;
   likes: number;
   language: string;
@@ -10,6 +10,7 @@ export type Quote = {
 
 
 export type Author = {
+  id: number,
   name: string;
 }
 

@@ -30,13 +30,14 @@ class MangoDataLoader {
         await this.parseQuotes(file).then((data:string[]) => {
             // Start at 1 because of headers in data
             for (let i = 1; i < data.length; i++) {
-                const author : Author = {
-                    name: data[i][1],
-                }
+                //Added an id field in Author so this was not viable anymore
+                // const author : Author = {
+                //     name: data[i][1],
+                // }
                 const quote : Quote = {
                     _id: i.toString(),
                     text: data[i][0],
-                    author: author,
+                    author: data[i][1],
                     tags: data[i][2],
                     language: "en",
                     likes: 0,

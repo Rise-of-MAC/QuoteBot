@@ -1,4 +1,4 @@
-import neo4j, { Driver, types, int } from 'neo4j-driver';
+import neo4j, { Driver, types, int, auth } from 'neo4j-driver';
 
 import {
     User,
@@ -17,7 +17,9 @@ class GraphDAO {
   }
 
   async prepare() {
-    await this.run("CREATE CONSTRAINT ON (n:Movie) ASSERT n.id IS UNIQUE", {});
+    await this.run("CREATE CONSTRAINT ON (q:Quote) ASSERT q.id IS UNIQUE", {});
+    await this.run("CREATE CONSTRAINT ON (a:Author) ASSERT a.id IS UNIQUE", {});
+    await this.run("CREATE CONSTRAINT ON (t:Tag) ASSERT t.name IS UNIQUE", {});
     await this.run("CREATE CONSTRAINT ON (u:User) ASSERT u.id IS UNIQUE", {});
   }
 
@@ -25,9 +27,69 @@ class GraphDAO {
     await this.driver.close();
   }
 
-  async upsertMovieLiked(user: User, movieId: string, liked: Liked) {
+  async upsertQuote(quoteId: string) {
+    return await this.run('MERGE (q:Quote{id: $quoteId}) RETURN q', {
+      quoteId,
+    })
+  }
+
+
+   //Link an author to a quote. If it did not exist, creates the author
+   async upsertAuthor(quoteId: string, author: Author) {
+    return await this.run(`
+      MATCH (q:Quote{ id: $quoteId })
+      MERGE (a:Author{id: $authorId})
+        ON CREATE SET a.name = $authorName
+      MERGE (a)-[r:WROTE]->(m)
+    `, {
+      quoteId,
+      autorId: author.id,
+      authorName: author.name,
+    })
+  }
+
+  //Link a tag to a quote. If it did not exist, creates the author
+  async upsertTag(quoteId: string, tag: Tag) {
+    return await this.run(`
+      MATCH (q:Quote{ id: $quoteId })
+      MERGE (t:Tag{id: $tagId})
+        ON CREATE SET t.name = $tagName
+      MERGE (q)-[r:LABELS]->(t)
+    `, {
+      quoteId,
+      tagId: tag.id,
+      tagName: tag.name,
+    })
+  }
+
+  async upsertUser(user: User) {
+    return await this.run(`
+      MERGE (u:User {id: $userId})
+      ON CREATE SET u.isBot = $isBot,
+                    u.firstName = $firstName,
+                    u.lastName = $lastName,
+                    u.username = $username,
+                    u.languageCode = $languageCode
+      ON MATCH SET  u.isBot = $isBot,
+                    u.firstName = $firstName,
+                    u.lastName = $lastName,
+                    u.username = $username,
+                    u.languageCode = $languageCode
+    `, {
+      userId: this.toInt(user.id),
+      firstName: user.first_name,
+      lastName: user.last_name,
+      username: user.username,
+      languageCode: user.language_code,
+      isBot: user.is_bot,
+    });
+  }
+
+
+
+  async upsertQuoteLiked(user: User, quoteId: string) {
     await this.run(`
-      MATCH (m:Movie {id: $movieId})
+      MATCH (q:Quote {id: $quoteId})
         MERGE (u:User {id: $userId})
           ON CREATE SET u.isBot = $isBot,
                         u.firstName = $firstName,
@@ -39,46 +101,44 @@ class GraphDAO {
                         u.lastName = $lastName,
                         u.username = $username,
                         u.languageCode = $languageCode
-        MERGE (u)-[l:LIKED]->(m)
-          ON CREATE SET l.rank = $likedRank,
-                        l.at = $likedAt
-          ON MATCH SET  l.rank = $likedRank,
-                        l.at = $likedAt
+        MERGE (u)-[l:LIKED]->(q)
     `, {
-      movieId,
+      quoteId,
       isBot: user.is_bot,
       firstName: user.first_name,
       lastName: user.last_name,
       languageCode: user.language_code,
       username: user.username,
       userId: this.toInt(user.id),
-      likedRank: liked.rank,
-      likedAt: this.toDate(liked.at),
     });
   }
 
-  async getMovieLiked(userId: number, movieId: string): Promise<Liked | null> {
-    return await this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Movie{id: $movieId}) RETURN l', {
-      userId,
-      movieId,
-    }).then((res) => {
-      if (res.records.length === 0) return null;
-      else {
-        const record = res.records[0].get('l');
-        return {
-          rank: record.properties.rank,
-          at: record.properties.at,
-        }
-      }
-    });
-  }
+  
 
-  async upsertMovie(movieId: string, movieTitle: string) {
-    return await this.run('MERGE (m:Movie{id: $movieId}) ON CREATE SET m.title = $movieTitle RETURN m', {
-      movieId,
-      movieTitle,
-    })
-  }
+//---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------
+
+  // async getMovieLiked(userId: number, movieId: string): Promise<Liked | null> {
+  //   return await this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Movie{id: $movieId}) RETURN l', {
+  //     userId,
+  //     movieId,
+  //   }).then((res) => {
+  //     if (res.records.length === 0) return null;
+  //     else {
+  //       const record = res.records[0].get('l');
+  //       return {
+  //         rank: record.properties.rank,
+  //         at: record.properties.at,
+  //       }
+  //     }
+  //   });
+  // }
+
+  // async upsertMovie(movieId: string, movieTitle: string) {
+  //   return await this.run('MERGE (m:Movie{id: $movieId}) ON CREATE SET m.title = $movieTitle RETURN m', {
+  //     movieId,
+  //     movieTitle,
+  //   })
+  // }
 
   // async upsertActor(movieId: string, actor: Actor) {
   //   return await this.run(`
@@ -106,29 +166,6 @@ class GraphDAO {
   //   });
   // }
 
-  async upsertUser(user: User) {
-    return await this.run(`
-      MERGE (u:User {id: $userId})
-      ON CREATE SET u.isBot = $isBot,
-                    u.firstName = $firstName,
-                    u.lastName = $lastName,
-                    u.username = $username,
-                    u.languageCode = $languageCode
-      ON MATCH SET  u.isBot = $isBot,
-                    u.firstName = $firstName,
-                    u.lastName = $lastName,
-                    u.username = $username,
-                    u.languageCode = $languageCode
-    `, {
-      userId: this.toInt(user.id),
-      firstName: user.first_name,
-      lastName: user.last_name,
-      username: user.username,
-      languageCode: user.language_code,
-      isBot: user.is_bot,
-    });
-  }
-
   // async upsertAdded(userId: number, movieId: string, added: Added) {
   //   return await this.run(`
   //     MATCH (m:Movie{ id: $movieId })
@@ -143,56 +180,56 @@ class GraphDAO {
   //   });
   // }
 
-  async upsertMovieUserLiked(userId: number, movieId: string, liked: Liked) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MATCH (u:User{ id: $userId })
-      MERGE (u)-[r:LIKED]->(m)
-        ON CREATE SET r.at = $at,
-                      r.rank = $rank
-        ON MATCH SET  r.at = $at,
-                      r.rank = $rank
-    `, {
-      userId: this.toInt(userId),
-      movieId,
-      at: this.toDate(liked.at),
-      rank: this.toInt(liked.rank)
-    });
-  }
+  // async upsertMovieUserLiked(userId: number, movieId: string, liked: Liked) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (u)-[r:LIKED]->(m)
+  //       ON CREATE SET r.at = $at,
+  //                     r.rank = $rank
+  //       ON MATCH SET  r.at = $at,
+  //                     r.rank = $rank
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     movieId,
+  //     at: this.toDate(liked.at),
+  //     rank: this.toInt(liked.rank)
+  //   });
+  // }
 
-  async upsertGenreLiked(userId: number, genreId: number, liked: Liked) {
-    return await this.run(`
-      MATCH (g:Genre{ id: $genreId })
-      MATCH (u:User{ id: $userId })
-      MERGE (u)-[r:LIKED]->(g)
-      ON CREATE SET r.at = $at,
-                    r.rank = $rank
-      ON MATCH SET  r.at = $at,
-                    r.rank = $rank
-    `, {
-      userId: this.toInt(userId),
-      genreId: this.toInt(genreId),
-      at: this.toDate(liked.at),
-      rank: liked.rank
-    });
-  }
+  // async upsertGenreLiked(userId: number, genreId: number, liked: Liked) {
+  //   return await this.run(`
+  //     MATCH (g:Genre{ id: $genreId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (u)-[r:LIKED]->(g)
+  //     ON CREATE SET r.at = $at,
+  //                   r.rank = $rank
+  //     ON MATCH SET  r.at = $at,
+  //                   r.rank = $rank
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     genreId: this.toInt(genreId),
+  //     at: this.toDate(liked.at),
+  //     rank: liked.rank
+  //   });
+  // }
 
-  async upsertActorLiked(userId: number, actorId: number, liked: Liked) {
-    return await this.run(`
-      MATCH (a:Actor{ id: $actorId })
-      MATCH (u:User{ id: $userId })
-      MERGE (u)-[r:LIKED]->(g)
-      ON CREATE SET r.at = $at,
-                    r.rank = $rank
-      ON MATCH SET  r.at = $at,
-                    r.rank = $rank
-    `, {
-      userId: this.toInt(userId),
-      actorId: this.toInt(actorId),
-      at: this.toDate(liked.at),
-      rank: this.toInt(liked.rank)
-    });
-  }
+  // async upsertActorLiked(userId: number, actorId: number, liked: Liked) {
+  //   return await this.run(`
+  //     MATCH (a:Actor{ id: $actorId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (u)-[r:LIKED]->(g)
+  //     ON CREATE SET r.at = $at,
+  //                   r.rank = $rank
+  //     ON MATCH SET  r.at = $at,
+  //                   r.rank = $rank
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     actorId: this.toInt(actorId),
+  //     at: this.toDate(liked.at),
+  //     rank: this.toInt(liked.rank)
+  //   });
+  // }
 
   // async upsertRequested(userId: number, movieId: string, requested: Requested) {
   //   return await this.run(`
@@ -248,27 +285,27 @@ class GraphDAO {
   //   });
   // }
 
-  async recommendActors(userId: number) {
-    /*
-    return await this.run(`
-      match (u:User{id: $userId})-[l:LIKED]->(m:Movie)<-[:PLAYED_IN]-(a:Actor)-[:PLAYED_IN]->(m2:Movie)<-[l2:LIKED]-(u)
-      where id(m) < id(m2) and l.rank > 3 and l2.rank > 3
-      return a, count(*)
-      order by count(*) desc
-      limit 5
-    `, {
-      userId
-    }).then((result) => result.records);
-    */
-   return await this.run(`
-      match (u:User{id: $userId})-[l:LIKED]->(m:Movie)<-[:PLAYED_IN]-(a:Actor)
-      return a, count(*)
-      order by count(*) desc
-      limit 5
-    `, {
-      userId
-    }).then((result) => result.records);
-  }
+  // async recommendActors(userId: number) {
+  //   /*
+  //   return await this.run(`
+  //     match (u:User{id: $userId})-[l:LIKED]->(m:Movie)<-[:PLAYED_IN]-(a:Actor)-[:PLAYED_IN]->(m2:Movie)<-[l2:LIKED]-(u)
+  //     where id(m) < id(m2) and l.rank > 3 and l2.rank > 3
+  //     return a, count(*)
+  //     order by count(*) desc
+  //     limit 5
+  //   `, {
+  //     userId
+  //   }).then((result) => result.records);
+  //   */
+  //  return await this.run(`
+  //     match (u:User{id: $userId})-[l:LIKED]->(m:Movie)<-[:PLAYED_IN]-(a:Actor)
+  //     return a, count(*)
+  //     order by count(*) desc
+  //     limit 5
+  //   `, {
+  //     userId
+  //   }).then((result) => result.records);
+  // }
 
   private toDate(value: Date) {
     return types.DateTime.fromStandardDate(value);

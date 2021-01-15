@@ -6,7 +6,7 @@ import { Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
 import DocumentDAO from './DocumentDAO';
 import GraphDAO from './GraphDAO';
-import { Liked, likedValues } from './Model';
+import {Liked} from "./Model";
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const graphDAO = new GraphDAO();
@@ -37,7 +37,7 @@ function formatQuote(content: string, author: string): string {
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
   // TODO: Uncomment when DAO is ready
-  
+
   // const query = ctx.inlineQuery;
   // if (query) {
   //   const quotes = await documentDAO.getQuotes(query.query);
@@ -76,7 +76,7 @@ function likeCallbackHandler(args: string[]) {
 bot.on('callback_query', async (ctx) => {
   if (ctx.callbackQuery && ctx.from) {
     const args = ctx.callbackQuery.data.split('__');
-    
+
     switch (args[0]) {
       case 'like':
         likeCallbackHandler(args)

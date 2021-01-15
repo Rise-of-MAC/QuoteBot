@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="34167ba5-16e1-42f0-92d8-773f6cd9d4c9" name="Default Changelist" comment="struct.">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-mango/DocumentDAO.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-mango/Model.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-mango/loadDataMango.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/loadDataMango.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-mango/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/DocumentDAO.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/DocumentDAO.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/GraphDAO copy.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/GraphDAO.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/GraphDAO.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/Model copy.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/Model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/Model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts-src/loadData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts-src/loadData.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1msiNoyLgFqqU4GrsqLU87mTQ0W" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/ts-src" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="ts.external.directory.path" value="C:\Users\mle\Desktop\COURS\3eme\SEMESTRE 1\MAC\Labos\MAC_Telegram\node_modules\typescript\lib" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mle\Desktop\COURS\3eme\SEMESTRE 1\MAC\Labos\MAC_Telegram\ts-src" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\mle\Desktop\COURS\3eme\SEMESTRE 1\MAC\Labos\MAC_Telegram\ts-src" />
+      <recent name="C:\Users\mle\Desktop\COURS\3eme\SEMESTRE 1\MAC\Labos\MAC_Telegram\data" />
+      <recent name="C:\Users\mle\Desktop\COURS\3eme\SEMESTRE 1\MAC\Labos\MAC_Telegram\test-mango" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="docker-compose.yml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.yml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker.docker-compose.yml: Compose Deployment" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="34167ba5-16e1-42f0-92d8-773f6cd9d4c9" name="Default Changelist" comment="" />
+      <created>1610288661852</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1610288661852</updated>
+      <workItem from="1610288663106" duration="2435000" />
+      <workItem from="1610291122049" duration="5778000" />
+      <workItem from="1610298389057" duration="1754000" />
+      <workItem from="1610354414317" duration="5909000" />
+      <workItem from="1610439919494" duration="648000" />
+      <workItem from="1610470752061" duration="3578000" />
+    </task>
+    <task id="LOCAL-00001" summary="parse CSV file : ok&#10;init mangoDB : ok&#10;insert Quote in db : ok&#10;get all Quotes from db : ok">
+      <created>1610359904398</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1610359904398</updated>
+    </task>
+    <task id="LOCAL-00002" summary="struct.">
+      <created>1610474279405</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1610474279405</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="parse CSV file : ok&#10;init mangoDB : ok&#10;insert Quote in db : ok&#10;get all Quotes from db : ok" />
+    <MESSAGE value="struct." />
+    <option name="LAST_COMMIT_MESSAGE" value="struct." />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="371" y="88" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1610474125440">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state x="371" y="88" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1280.680@0.0.1280.680" timestamp="1610474125440" />
+    <state x="233" y="74" key="Vcs.Push.Dialog.v2" timestamp="1610474285780">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state x="233" y="74" key="Vcs.Push.Dialog.v2/0.0.1280.680@0.0.1280.680" timestamp="1610474285780" />
+    <state x="221" y="0" key="editAsTableFormatDialogDimension" timestamp="1610354595462">
+      <screen x="0" y="0" width="1280" height="680" />
+    </state>
+    <state x="221" y="0" key="editAsTableFormatDialogDimension/0.0.1280.680@0.0.1280.680" timestamp="1610354595462" />
+  </component>
+</project>

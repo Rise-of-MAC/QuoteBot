@@ -1,18 +1,15 @@
 import neo4j, { Driver, types, int } from 'neo4j-driver';
 
 import {
-  User,
-  Liked,
-  Actor,
-  Genre,
-  Added,
-  Requested,
-  Comment,
-  likedValues
+    User,
+    Quote,
+    Tag,
+    Author,
+    Liked,
 } from './Model';
 
 class GraphDAO {
-  
+
   private driver: Driver;
 
   constructor() {
@@ -83,31 +80,31 @@ class GraphDAO {
     })
   }
 
-  async upsertActor(movieId: string, actor: Actor) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MERGE (a:Actor{id: $actorId})
-        ON CREATE SET a.name = $actorName
-      MERGE (a)-[r:PLAYED_IN]->(m)
-    `, {
-      movieId,
-      actorId: actor.id,
-      actorName: actor.name,
-    })
-  }
+  // async upsertActor(movieId: string, actor: Actor) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MERGE (a:Actor{id: $actorId})
+  //       ON CREATE SET a.name = $actorName
+  //     MERGE (a)-[r:PLAYED_IN]->(m)
+  //   `, {
+  //     movieId,
+  //     actorId: actor.id,
+  //     actorName: actor.name,
+  //   })
+  // }
 
-  async upsertGenre(movieId: string, genre: Genre) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MERGE (g:Genre{id: $genreId})
-        ON CREATE SET g.name = $genreName
-      MERGE (m)-[r:BELONGS_TO]->(g)
-    `, {
-      movieId,
-      genreId: genre.id,
-      genreName: genre.name,
-    });
-  }
+  // async upsertGenre(movieId: string, genre: Genre) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MERGE (g:Genre{id: $genreId})
+  //       ON CREATE SET g.name = $genreName
+  //     MERGE (m)-[r:BELONGS_TO]->(g)
+  //   `, {
+  //     movieId,
+  //     genreId: genre.id,
+  //     genreName: genre.name,
+  //   });
+  // }
 
   async upsertUser(user: User) {
     return await this.run(`
@@ -132,19 +129,19 @@ class GraphDAO {
     });
   }
 
-  async upsertAdded(userId: number, movieId: string, added: Added) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MATCH (u:User{ id: $userId })
-      MERGE (u)-[r:ADDED]->(m)
-        ON CREATE SET r.at = $at
-        ON MATCH SET  r.at = $at
-    `, {
-      userId: this.toInt(userId),
-      movieId,
-      at: this.toDate(added.at),
-    });
-  }
+  // async upsertAdded(userId: number, movieId: string, added: Added) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (u)-[r:ADDED]->(m)
+  //       ON CREATE SET r.at = $at
+  //       ON MATCH SET  r.at = $at
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     movieId,
+  //     at: this.toDate(added.at),
+  //   });
+  // }
 
   async upsertMovieUserLiked(userId: number, movieId: string, liked: Liked) {
     return await this.run(`
@@ -197,59 +194,59 @@ class GraphDAO {
     });
   }
 
-  async upsertRequested(userId: number, movieId: string, requested: Requested) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MATCH (u:User{ id: $userId })
-      MERGE (u)-[r:REQUESTED]->(m)
-        ON CREATE SET r.at = $at
-        ON MATCH SET  r.at = $at
-    `, {
-      userId: this.toInt(userId),
-      movieId,
-      at: this.toDate(requested.at),
-    });
-  }
+  // async upsertRequested(userId: number, movieId: string, requested: Requested) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (u)-[r:REQUESTED]->(m)
+  //       ON CREATE SET r.at = $at
+  //       ON MATCH SET  r.at = $at
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     movieId,
+  //     at: this.toDate(requested.at),
+  //   });
+  // }
 
-  async upsertCommentAboutMovie(userId: number, movieId: string, comment: Comment) {
-    return await this.run(`
-      MATCH (m:Movie{ id: $movieId })
-      MATCH (u:User{ id: $userId })
-      MERGE (c:Comment{ id: $commentId })
-        ON CREATE SET c.text = $commentText,
-                      c.at = $commentAt
-        ON MATCH SET  c.text = $commentText,
-                      c.at = $commentAt
-      MERGE (u)-[r:WROTE]->(c)
-      MERGE (c)-[r:ABOUT]->(m)
-    `, {
-      userId: this.toInt(userId),
-      movieId,
-      commentId: this.toInt(comment.id),
-      commentAt: this.toDate(comment.at),
-      commentText: comment.text
-    });
-  }
+  // async upsertCommentAboutMovie(userId: number, movieId: string, comment: Comment) {
+  //   return await this.run(`
+  //     MATCH (m:Movie{ id: $movieId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (c:Comment{ id: $commentId })
+  //       ON CREATE SET c.text = $commentText,
+  //                     c.at = $commentAt
+  //       ON MATCH SET  c.text = $commentText,
+  //                     c.at = $commentAt
+  //     MERGE (u)-[r:WROTE]->(c)
+  //     MERGE (c)-[r:ABOUT]->(m)
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     movieId,
+  //     commentId: this.toInt(comment.id),
+  //     commentAt: this.toDate(comment.at),
+  //     commentText: comment.text
+  //   });
+  // }
 
-  async upsertCommentAbountComment(userId: number, commentId: number, comment: Comment) {
-    return await this.run(`
-      MATCH (cc:Comment{ id: $commentId })
-      MATCH (u:User{ id: $userId })
-      MERGE (c:Comment{ id: $subCommentId })
-        ON CREATE SET c.text = $subCommentText,
-                      c.at = $subCommentAt
-        ON MATCH SET  c.text = $subCommentText,
-                      c.at = $subCommentAt
-      MERGE (u)-[r:WROTE]->(c)
-      MERGE (c)-[r:ABOUT]->(cc)
-    `, {
-      userId: this.toInt(userId),
-      commentId: this.toInt(commentId),
-      subCommentId: this.toInt(comment.id),
-      subCommentAt: this.toDate(comment.at),
-      subCommentText: comment.text
-    });
-  }
+  // async upsertCommentAbountComment(userId: number, commentId: number, comment: Comment) {
+  //   return await this.run(`
+  //     MATCH (cc:Comment{ id: $commentId })
+  //     MATCH (u:User{ id: $userId })
+  //     MERGE (c:Comment{ id: $subCommentId })
+  //       ON CREATE SET c.text = $subCommentText,
+  //                     c.at = $subCommentAt
+  //       ON MATCH SET  c.text = $subCommentText,
+  //                     c.at = $subCommentAt
+  //     MERGE (u)-[r:WROTE]->(c)
+  //     MERGE (c)-[r:ABOUT]->(cc)
+  //   `, {
+  //     userId: this.toInt(userId),
+  //     commentId: this.toInt(commentId),
+  //     subCommentId: this.toInt(comment.id),
+  //     subCommentAt: this.toDate(comment.at),
+  //     subCommentText: comment.text
+  //   });
+  // }
 
   async recommendActors(userId: number) {
     /*

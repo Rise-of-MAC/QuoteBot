@@ -1,8 +1,8 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es6",
-    "outDir": "src",
+    "target": "es5",
+    "outDir": "../src",
     "lib": [
       "es2019"
     ],

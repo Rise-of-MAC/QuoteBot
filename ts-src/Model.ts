@@ -26,3 +26,8 @@ export type User = {
   is_bot: boolean;
   language_code?: string;
 }
+
+export type Liked = {
+  at: Date;
+  rank: number;
+}

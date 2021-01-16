@@ -39,10 +39,10 @@ class GraphDAO {
     upsertAuthor(quoteId, author) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.run(`
-      MATCH (q:Quote{ id: $quoteId })
+      MATCH (q:Quote{id: $quoteId})
       MERGE (a:Author{id: $authorId})
         ON CREATE SET a.name = $authorName
-      MERGE (a)-[r:WROTE]->(m)
+      MERGE (a)-[r:WROTE]->(q)
     `, {
                 quoteId,
                 authorId: author.id,
@@ -116,6 +116,50 @@ class GraphDAO {
             });
         });
     }
+    getMyTopFiveTags(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.run(`
+      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+      RETURN t, count(*)
+      ORDER BY count(*) desc
+      LIMIT 5
+    `, {
+                userId: user.id
+            });
+        });
+    }
+    getRecommandation(user, tag) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.run(`
+      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+      MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+      WHERE NOT (u)-[:LIKED]->(q2)
+      WITH q2, rand() AS r
+      ORDER BY r
+      RETURN q2
+      LIMIT 1
+    `, {
+                userId: user.id,
+                $tagId: tag.id
+            });
+        });
+    }
+    //LIKE a quote: MATCH (u:User{id: "1"}) MERGE (u)-[l:LIKED]->(q:Quote{id:13 })
+    //-------------------------WIP Complex request--------------------------
+    //Get the tags that belong to the quotes a user liked and the amount of likes
+    //MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) RETURN t, count(*)
+    //Get my top authors that wrote quotes I liked
+    // MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author) RETURN a LIMIT 10
+    //MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id: "1"})
+    //RETURN q2
+    // Complex recomandation request! (manque: top x des auteurs, mais c'est pas une bonne idée; filter par nombre de likes)
+    // MATCH (u:User{id: 136451861})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+    // MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:30})
+    // WHERE NOT (u)-[:LIKED]->(q2)
+    // WITH q2, rand() AS r
+    // ORDER BY r
+    // RETURN q2
+    // LIMIT 1
     //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------
     // async getMovieLiked(userId: number, movieId: string): Promise<Liked | null> {
     //   return await this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Movie{id: $movieId}) RETURN l', {

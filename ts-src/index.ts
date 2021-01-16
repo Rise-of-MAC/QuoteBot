@@ -26,6 +26,10 @@ function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboard
         text: "Love it! 💓",
         callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
       },
+      {
+        text: "Share",
+        switch_inline_query: quoteId
+      }
     ]],
   }
 }
@@ -36,23 +40,30 @@ function formatQuote(content: string, author: string): string {
 
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
-  // TODO: Uncomment when DAO is ready
+  const query = ctx.inlineQuery;
+  if (query) {
+    const quotes = [];
+    const quote = await documentDAO.getQuoteById(query.query);
+    if (quote != null) {
+      quotes.push(quote); 
+    } else {
+      quotes.push(...(await documentDAO.getQuotesByAuthor(query.query)));
+      quotes.push(...(await (await documentDAO.getQuotes(query.query)).filter(q => !quotes.map(q => q._id).includes(q._id))));
+    }
 
-  // const query = ctx.inlineQuery;
-  // if (query) {
-  //   const quotes = await documentDAO.getQuotes(query.query);
-  //   const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
-  //     id: quote._id,
-  //     type: 'article',
-  //     title: quote.author,
-  //     description: quote.content,
-  //     reply_markup: buildLikeKeyboard(quote._id),
-  //     input_message_content: {
-  //       message_text: formatQuote(quote.content, quote.author)
-  //     },
-  //   }));
-  //   ctx.answerInlineQuery(answer);
-  // }
+    const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
+      id: quote._id,
+      type: 'article',
+      title: quote.author,
+      description: quote.text,
+      reply_markup: buildLikeKeyboard(quote._id),
+      input_message_content: {
+        message_text: formatQuote(quote.text, quote.author),
+        parse_mode: "Markdown"
+      },
+    }));
+    ctx.answerInlineQuery(answer);
+  }
 });
 
 // User chose a movie from the list displayed in the inline query
@@ -86,9 +97,9 @@ bot.on('callback_query', async (ctx) => {
 
 
 bot.command('random', async (ctx) => {
-
-  const randomQuote = await documentDAO.getRandomQuote(2); 
-  ctx.reply(randomQuote[0].text);
+  const randomQuote = await documentDAO.getRandomQuote();
+  const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
+  ctx.reply(answer);
 });
 
 bot.command('help', (ctx) => {

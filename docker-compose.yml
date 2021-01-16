@@ -13,7 +13,7 @@ services:
   graphdb:
     image: neo4j:3.5
     environment:
-      NEO4J_AUTH: none
+      NEO4J_AUTH: neo4j/graphSecret
     networks:
       - backend
     ports:

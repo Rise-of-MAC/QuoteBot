@@ -74,15 +74,19 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     const quotesBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     quotesBar.start(quotes.length, 0);
     for (let quote of quotes) {
+      console.log("new quote")
       const quoteTags = quote.tags.split(',').map(i => i.trim());;
     
+      console.log("upsert quote")
       await graphDAO.upsertQuote(quote._id);
     
+      console.log("upsert tags")
       // Update tags <-> quote links
       await Promise.all(quoteTags.map((name) => {
         const id = tags.find((it) => it[1] === name)[0] as number;
         return graphDAO.upsertTag(quote._id, { id, name });
       }));
+      console.log("upsert author")
 
       // Update authors <-> quote links
       const name = quote.author;

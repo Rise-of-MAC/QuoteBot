@@ -10,13 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import neo4j, { types, int } from 'neo4j-driver';
 class GraphDAO {
     constructor() {
+        console.log("graphdb host = " + process.env.GRAPHDB_HOST);
+        console.log("graphdb password = " + process.env.GRAPHDB_PASSWORD);
+        console.log("process.env = " + process.env);
         this.driver = neo4j.driver(`bolt://${process.env.GRAPHDB_HOST}`, neo4j.auth.basic('neo4j', process.env.GRAPHDB_PASSWORD));
     }
     prepare() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.run("CREATE CONSTRAINT ON (q:Quote) ASSERT q.id IS UNIQUE", {});
             yield this.run("CREATE CONSTRAINT ON (a:Author) ASSERT a.id IS UNIQUE", {});
-            yield this.run("CREATE CONSTRAINT ON (t:Tag) ASSERT t.name IS UNIQUE", {});
+            yield this.run("CREATE CONSTRAINT ON (t:Tag) ASSERT t.id IS UNIQUE", {});
             yield this.run("CREATE CONSTRAINT ON (u:User) ASSERT u.id IS UNIQUE", {});
         });
     }
@@ -42,7 +45,7 @@ class GraphDAO {
       MERGE (a)-[r:WROTE]->(m)
     `, {
                 quoteId,
-                autorId: author.id,
+                authorId: author.id,
                 authorName: author.name,
             });
         });

@@ -64,14 +64,18 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     const quotesBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     quotesBar.start(quotes.length, 0);
     for (let quote of quotes) {
+        console.log("new quote");
         const quoteTags = quote.tags.split(',').map(i => i.trim());
         ;
+        console.log("upsert quote");
         yield graphDAO.upsertQuote(quote._id);
+        console.log("upsert tags");
         // Update tags <-> quote links
         yield Promise.all(quoteTags.map((name) => {
             const id = tags.find((it) => it[1] === name)[0];
             return graphDAO.upsertTag(quote._id, { id, name });
         }));
+        console.log("upsert author");
         // Update authors <-> quote links
         const name = quote.author;
         const id = authors.find((it) => it[1] === name)[0];

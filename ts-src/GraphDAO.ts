@@ -70,18 +70,15 @@ class GraphDAO {
       MERGE (u:User {id: $userId})
       ON CREATE SET u.isBot = $isBot,
                     u.firstName = $firstName,
-                    u.lastName = $lastName,
                     u.username = $username,
                     u.languageCode = $languageCode
       ON MATCH SET  u.isBot = $isBot,
                     u.firstName = $firstName,
-                    u.lastName = $lastName,
                     u.username = $username,
                     u.languageCode = $languageCode
     `, {
       userId: this.toInt(user.id),
       firstName: user.first_name,
-      lastName: user.last_name,
       username: user.username,
       languageCode: user.language_code,
       isBot: user.is_bot,
@@ -96,12 +93,10 @@ class GraphDAO {
         MERGE (u:User {id: $userId})
           ON CREATE SET u.isBot = $isBot,
                         u.firstName = $firstName,
-                        u.lastName = $lastName,
                         u.username = $username,
                         u.languageCode = $languageCode
           ON MATCH SET  u.isBot = $isBot,
                         u.firstName = $firstName,
-                        u.lastName = $lastName,
                         u.username = $username,
                         u.languageCode = $languageCode
         MERGE (u)-[l:LIKED]->(q)
@@ -109,7 +104,6 @@ class GraphDAO {
       quoteId,
       isBot: user.is_bot,
       firstName: user.first_name,
-      lastName: user.last_name,
       languageCode: user.language_code,
       username: user.username,
       userId: this.toInt(user.id),

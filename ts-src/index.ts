@@ -6,7 +6,7 @@ import { Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
 import DocumentDAO from './DocumentDAO';
 import GraphDAO from './GraphDAO';
-import {Liked} from "./Model";
+import {Liked, User} from "./Model";
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const graphDAO = new GraphDAO();
@@ -83,17 +83,20 @@ bot.on('chosen_inline_result', async (ctx) => {
   // }
 });
 
-function likeCallbackHandler(args: string[]) {
-  // TODO: call Geo4J backend
+async function likeCallbackHandler(quoteId: string, user : User ) {
+    await graphDAO.upsertQuoteLiked(user, quoteId);
 }
 
 bot.on('callback_query', async (ctx) => {
+
   if (ctx.callbackQuery && ctx.from) {
     const args = ctx.callbackQuery.data.split('__');
 
+    //args[0] == type of callback
+    //args[1] == id of quote
     switch (args[0]) {
       case 'like':
-        likeCallbackHandler(args)
+        await likeCallbackHandler(args[1], ctx.from)
     }
   }
 });

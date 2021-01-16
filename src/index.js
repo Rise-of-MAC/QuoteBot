@@ -11,12 +11,12 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { Telegraf } from 'telegraf';
 import DocumentDAO from './DocumentDAO';
-import GraphDAO from './GraphDAO';
+import GraphDAO, { amountOfRecommendedTags } from './GraphDAO';
 var CallbackCommand;
 (function (CallbackCommand) {
     CallbackCommand["LIKE"] = "like";
     CallbackCommand["STARRED"] = "starred";
-    CallbackCommand["RECOMMANDATION"] = "recommandation";
+    CallbackCommand["RECOMMENDATION"] = "recommendation";
 })(CallbackCommand || (CallbackCommand = {}));
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const graphDAO = new GraphDAO();
@@ -43,12 +43,12 @@ function buildQuoteKeyboard(quoteId, currentLike) {
             ]],
     };
 }
-function buildRecommandationsKeyboard(tags) {
+function buildRecommendationsKeyboard(tags) {
     let kb = [];
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < amountOfRecommendedTags; i++) {
         kb.push([{
                 text: tags[i].name,
-                callback_data: CallbackCommand.RECOMMANDATION + callbackSep + tags[i].id,
+                callback_data: CallbackCommand.RECOMMENDATION + callbackSep + tags[i].id,
             }]);
     }
     return { inline_keyboard: kb };
@@ -153,12 +153,17 @@ bot.on('callback_query', (ctx) => __awaiter(void 0, void 0, void 0, function* ()
                 //args[1] == page number
                 yield starredCallbackHandler(parseInt(args[1]), ctx);
                 break;
-            case CallbackCommand.RECOMMANDATION:
+            case CallbackCommand.RECOMMENDATION:
                 //args[1] = tag id
                 const tagId = parseInt(args[1]);
-                console.log("tag id = " + tagId);
-                const quoteId = yield graphDAO.getRecommandation(ctx.from, tagId);
-                const quote = yield documentDAO.getQuoteById(quoteId);
+                const quoteId = yield graphDAO.getRecommendation(ctx.from, tagId);
+                console.log("quoteID = " + quoteId);
+                let quote = undefined;
+                quote = yield documentDAO.getQuoteById(quoteId);
+                console.log("quote = " + quote);
+                if (quote === null) {
+                    quote = yield documentDAO.getRandomQuote();
+                }
                 ctx.replyWithMarkdown(formatQuote(quote.text, quote.author), {
                     reply_markup: buildQuoteKeyboard(quote._id)
                 });
@@ -173,12 +178,11 @@ bot.command('random', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         reply_markup: buildQuoteKeyboard(randomQuote._id)
     });
 }));
-bot.command('recommand', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+bot.command('recommend', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     yield graphDAO.upsertUser(ctx.from);
     const tags = yield graphDAO.getMyTopFiveTags(ctx.from);
-    console.log(tags);
     ctx.replyWithMarkdown("Please choose a tag", {
-        reply_markup: buildRecommandationsKeyboard(tags)
+        reply_markup: buildRecommendationsKeyboard(tags)
     });
 }));
 bot.command('help', (ctx) => {

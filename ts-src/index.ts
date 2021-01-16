@@ -5,13 +5,13 @@ dotenv.config();
 import { Context, Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
 import DocumentDAO from './DocumentDAO';
-import GraphDAO from './GraphDAO';
+import GraphDAO, { amountOfRecommendedTags } from './GraphDAO';
 import {Liked, Tag, User, Quote} from "./Model";
 
 enum CallbackCommand {
   LIKE = 'like',
   STARRED = 'starred',
-  RECOMMANDATION = 'recommandation',
+  RECOMMENDATION = 'recommendation',
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -43,12 +43,12 @@ function buildQuoteKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboar
   }
 }
 
-function buildRecommandationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
+function buildRecommendationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
   let kb = []
-  for(var i = 0; i < 5 ; i++){
+  for(var i = 0; i < amountOfRecommendedTags ; i++){
     kb.push([{
       text: tags[i].name,
-      callback_data: CallbackCommand.RECOMMANDATION + callbackSep + tags[i].id, // payload that will be retrieved when button is pressed
+      callback_data: CallbackCommand.RECOMMENDATION + callbackSep + tags[i].id, // payload that will be retrieved when button is pressed
     }]);
   }
   return {inline_keyboard : kb};
@@ -163,12 +163,17 @@ bot.on('callback_query', async (ctx) => {
         //args[1] == page number
         await starredCallbackHandler(parseInt(args[1]), ctx);
         break;
-      case CallbackCommand.RECOMMANDATION:
+      case CallbackCommand.RECOMMENDATION:
         //args[1] = tag id
         const tagId = parseInt(args[1]);
-        console.log("tag id = " + tagId)
-        const quoteId : string = await graphDAO.getRecommandation(ctx.from, tagId)
-        const quote = await documentDAO.getQuoteById(quoteId)
+        const quoteId : string = await graphDAO.getRecommendation(ctx.from, tagId)
+        console.log("quoteID = " + quoteId)
+        let quote : Quote = undefined;
+        quote = await documentDAO.getQuoteById(quoteId)
+        console.log("quote = " + quote)
+        if(quote === null){
+          quote = await documentDAO.getRandomQuote();
+        }
         ctx.replyWithMarkdown(formatQuote(quote.text, quote.author), {
           reply_markup: buildQuoteKeyboard(quote._id)
         });
@@ -186,12 +191,11 @@ bot.command('random', async (ctx) => {
   });
 });
 
-bot.command('recommand', async (ctx) => {
+bot.command('recommend', async (ctx) => {
   await graphDAO.upsertUser(ctx.from);
   const tags : Tag[] = await graphDAO.getMyTopFiveTags(ctx.from);
-  console.log(tags);
   ctx.replyWithMarkdown("Please choose a tag", {
-    reply_markup: buildRecommandationsKeyboard(tags)
+    reply_markup: buildRecommendationsKeyboard(tags)
   });
 });
 

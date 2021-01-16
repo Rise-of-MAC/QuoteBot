@@ -8,6 +8,8 @@ import {
     Liked,
 } from './Model';
 
+export const amountOfRecommendedTags = 5;
+
 class GraphDAO {
 
   private driver: Driver;
@@ -115,7 +117,7 @@ class GraphDAO {
     MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
     RETURN t, count(*)
     ORDER BY count(*) desc
-    LIMIT 5
+    LIMIT ` + amountOfRecommendedTags + `
   `, {
     userId: user.id
   }).then((res) => {
@@ -126,7 +128,7 @@ class GraphDAO {
     });
   }
 
-  async getRecommandation(user: User, tagId: number){
+  async getRecommendation(user: User, tagId: number){
     return await this.run(`
     MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
     MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})

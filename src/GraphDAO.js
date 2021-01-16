@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import neo4j, { types, int } from 'neo4j-driver';
+export const amountOfRecommendedTags = 5;
 class GraphDAO {
     constructor() {
         console.log("graphdb host = " + process.env.GRAPHDB_HOST);
@@ -116,7 +117,7 @@ class GraphDAO {
     MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
     RETURN t, count(*)
     ORDER BY count(*) desc
-    LIMIT 5
+    LIMIT ` + amountOfRecommendedTags + `
   `, {
                 userId: user.id
             }).then((res) => {
@@ -128,7 +129,7 @@ class GraphDAO {
             });
         });
     }
-    getRecommandation(user, tagId) {
+    getRecommendation(user, tagId) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.run(`
     MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)

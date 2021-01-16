@@ -28,6 +28,24 @@ function buildLikeKeyboard(quoteId, currentLike) {
                     text: "Love it! 💓",
                     callback_data: 'like__' + quoteId,
                 },
+                {
+                    text: "Share",
+                    switch_inline_query: quoteId
+                }
+            ]],
+    };
+}
+function buildRecommandationsKeyboard(tags) {
+    return {
+        inline_keyboard: [[
+                {
+                    text: tags[0].name,
+                    callback_data: 'like__' + quoteId,
+                },
+                {
+                    text: "Share",
+                    switch_inline_query: quoteId
+                }
             ]],
     };
 }
@@ -36,22 +54,32 @@ function formatQuote(content, author) {
 }
 // User is using the inline query mode on the bot
 bot.on('inline_query', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    // TODO: Uncomment when DAO is ready
-    // const query = ctx.inlineQuery;
-    // if (query) {
-    //   const quotes = await documentDAO.getQuotes(query.query);
-    //   const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
-    //     id: quote._id,
-    //     type: 'article',
-    //     title: quote.author,
-    //     description: quote.content,
-    //     reply_markup: buildLikeKeyboard(quote._id),
-    //     input_message_content: {
-    //       message_text: formatQuote(quote.content, quote.author)
-    //     },
-    //   }));
-    //   ctx.answerInlineQuery(answer);
-    // }
+    const query = ctx.inlineQuery;
+    if (query) {
+        const quotes = [];
+        // First search by id (for share function)
+        const quote = yield documentDAO.getQuoteById(query.query);
+        if (quote != null) {
+            quotes.push(quote);
+        }
+        else { // if no id matches, then search by author and text
+            quotes.push(...(yield documentDAO.getQuotesByAuthor(query.query)));
+            quotes.push(...(yield (yield documentDAO.getQuotes(query.query))
+                .filter(q => !quotes.map(q => q._id).includes(q._id))));
+        }
+        const answer = quotes.map((quote) => ({
+            id: quote._id,
+            type: 'article',
+            title: quote.author,
+            description: quote.text,
+            reply_markup: buildLikeKeyboard(quote._id),
+            input_message_content: {
+                message_text: formatQuote(quote.text, quote.author),
+                parse_mode: "Markdown"
+            },
+        }));
+        ctx.answerInlineQuery(answer);
+    }
 }));
 // User chose a movie from the list displayed in the inline query
 // Used to update the keyboard and show filled stars if user already liked it
@@ -64,21 +92,40 @@ bot.on('chosen_inline_result', (ctx) => __awaiter(void 0, void 0, void 0, functi
     //   }
     // }
 }));
-function likeCallbackHandler(args) {
-    // TODO: call Geo4J backend
+function likeCallbackHandler(quoteId, user) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield graphDAO.upsertQuoteLiked(user, quoteId);
+    });
 }
 bot.on('callback_query', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if (ctx.callbackQuery && ctx.from) {
         const args = ctx.callbackQuery.data.split('__');
+        //args[0] == type of callback
+        //args[1] == id of quote
         switch (args[0]) {
             case 'like':
-                likeCallbackHandler(args);
+                yield likeCallbackHandler(args[1], ctx.from);
+                break;
+            case 'recommandation':
+                break;
         }
+        ctx.answerCbQuery();
     }
 }));
 bot.command('random', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    const randomQuote = yield documentDAO.getRandomQuote(2);
-    ctx.reply(randomQuote[0].text);
+    const randomQuote = yield documentDAO.getRandomQuote();
+    const answer = randomQuote.author + " once said : " + randomQuote.text;
+    ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
+        reply_markup: buildLikeKeyboard(randomQuote._id)
+    });
+}));
+bot.command('recommand', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    yield graphDAO.upsertUser(ctx.from);
+    const tags = yield graphDAO.getMyTopFiveTags(ctx.from);
+    const answer = randomQuote.author + " once said : " + randomQuote.text;
+    ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
+        reply_markup: buildLikeKeyboard(randomQuote._id)
+    });
 }));
 bot.command('help', (ctx) => {
     ctx.reply(`

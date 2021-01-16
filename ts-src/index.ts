@@ -6,7 +6,7 @@ import { Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
 import DocumentDAO from './DocumentDAO';
 import GraphDAO from './GraphDAO';
-import {Liked, User} from "./Model";
+import {Liked, Tag, User} from "./Model";
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const graphDAO = new GraphDAO();
@@ -18,6 +18,7 @@ function stripMargin(template: TemplateStringsArray, ...expressions: any[]) {
   });
   return result.replace(/(\n|\r|\r\n)\s*\|/g, '$1');
 }
+
 
 function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboardMarkup {
   return {
@@ -33,6 +34,22 @@ function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboard
     ]],
   }
 }
+
+function buildRecommandationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
+  return {
+    inline_keyboard: [[
+      {
+        text: tags[0].name,
+        callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
+      },
+      {
+        text: "Share",
+        switch_inline_query: quoteId
+      }
+    ]],
+  }
+}
+
 
 function formatQuote(content: string, author: string): string {
   return '*' + content + '*\n\n_' + author + '_'
@@ -97,6 +114,10 @@ bot.on('callback_query', async (ctx) => {
     switch (args[0]) {
       case 'like':
         await likeCallbackHandler(args[1], ctx.from)
+        break;
+      case 'recommandation':
+        break;
+
     }
     ctx.answerCbQuery();
   }
@@ -105,6 +126,15 @@ bot.on('callback_query', async (ctx) => {
 
 bot.command('random', async (ctx) => {
   const randomQuote = await documentDAO.getRandomQuote();
+  const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
+  ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
+    reply_markup: buildLikeKeyboard(randomQuote._id)
+  });
+});
+
+bot.command('recommand', async (ctx) => {
+  await graphDAO.upsertUser(ctx.from)
+  const tags = await graphDAO.getMyTopFiveTags(ctx.from);
   const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
   ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
     reply_markup: buildLikeKeyboard(randomQuote._id)

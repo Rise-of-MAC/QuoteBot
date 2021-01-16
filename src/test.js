@@ -22,6 +22,8 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     //Write movies in Mango
     // console.log('Parsing CSV and writing movies to mongo');
     // await mangoDataLoader.load('../data/quotes_dataset.csv')
-    const q = yield documentDAO.getRandomQuote(2);
+    const q = yield documentDAO.getQuotesByAuthor('John Green');
     console.log(q[0].text);
+    console.log(q[0].author);
+    console.log(q[0].tags);
 }))();

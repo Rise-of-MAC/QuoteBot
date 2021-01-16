@@ -44,7 +44,12 @@ class DocumentDAO {
     }
     getQuotes(search) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.collection.find({ 'text': new RegExp(search) }).limit(10).toArray();
+            return yield this.collection.find({ 'text': new RegExp(search, 'i') }).limit(10).toArray();
+        });
+    }
+    getQuotesByAuthor(search) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.collection.find({ 'author': new RegExp(search, 'i') }).limit(10).toArray();
         });
     }
     getQuoteById(id) {
@@ -52,9 +57,12 @@ class DocumentDAO {
             return yield this.collection.findOne({ _id: id });
         });
     }
-    getRandomQuote(n) {
+    getRandomQuote() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.collection.find().limit(n).toArray();
+            const quotes = yield this.getAllQuotes();
+            const r = Math.floor(Math.random() * (0 - quotes.length) + quotes.length);
+            const randomQuote = quotes[r];
+            return randomQuote;
         });
     }
     getAllQuotes() {

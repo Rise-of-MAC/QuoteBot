@@ -51,9 +51,6 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
     //Load them back to get their id along
     console.log('Loading quotes back in memory');
     const quotes = yield documentDAO.getAllQuotes();
-    for (let quote of quotes) {
-        console.log(quote);
-    }
     // TODO : Neo4j stufffff :'(
     // Retrieve all tags and authors from all quotes, split them and assign a numeric id
     console.log('Calculating authors and tags');

@@ -54,7 +54,7 @@ function buildRecommendationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
   return {inline_keyboard : kb};
 }
 
-function buildPaginationKeyboard(page: number, callbackCmd: CallbackCommand): InlineKeyboardMarkup {
+function buildPaginationKeyboard(page: number, callbackCmd: CallbackCommand, end?: boolean): InlineKeyboardMarkup {
   const buttons = []
   if (page > 0) {
     buttons.push({
@@ -63,11 +63,13 @@ function buildPaginationKeyboard(page: number, callbackCmd: CallbackCommand): In
     })
   }
 
-  buttons.push({
-    text: "Next »",
-    callback_data: callbackCmd + callbackSep + (page + 1)
-  })
-
+  if (!end) {
+    buttons.push({
+      text: "Next »",
+      callback_data: callbackCmd + callbackSep + (page + 1)
+    })
+  }
+  
   return {
     inline_keyboard: [buttons]
   };
@@ -82,8 +84,8 @@ function formatQuotes(quotes: Quote[]): string {
   return text.length ? text : 'Like more quotes to see them here!';
 }
 
-async function getQuotesLiked(userId: number): Promise<Quote[]> {
-  const quotesId = await graphDAO.getQuotesLiked(userId, quotesPerPage, 0);
+async function getQuotesLiked(userId: number, page: number): Promise<Quote[]> {
+  const quotesId = await graphDAO.getQuotesLiked(userId, quotesPerPage, page);
   const quotes = [];
   for (const id of quotesId) {
     const quote = await documentDAO.getQuoteById(id)
@@ -123,41 +125,35 @@ bot.on('inline_query', async (ctx) => {
   }
 });
 
-// User chose a movie from the list displayed in the inline query
-// Used to update the keyboard and show filled stars if user already liked it
-bot.on('chosen_inline_result', async (ctx) => {
+async function likeCallbackHandler(quoteId: string, user : User ): Promise<string | ""> {
+    const liked = await graphDAO.getQuoteLiked(user.id, quoteId);
 
-  // TODO: decide if we need something similar
-
-  // if (ctx.from && ctx.chosenInlineResult) {
-  //   const liked = await graphDAO.getMovieLiked(ctx.from.id, ctx.chosenInlineResult.result_id);
-  //   if (liked !== null) {
-  //     ctx.editMessageReplyMarkup(buildLikeKeyboard(ctx.chosenInlineResult.result_id, liked));
-  //   }
-  // }
-});
-
-async function likeCallbackHandler(quoteId: string, user : User ) {
+    if (liked) {
+      return "You already love this glorious quote"
+    }
+    
     await graphDAO.upsertQuoteLiked(user, quoteId);
 }
 
 async function starredCallbackHandler(page: number, ctx: Context) {
-  console.log('page = ' + page)
-  const quotes = await getQuotesLiked(ctx.from.id);
-  ctx.editMessageText(formatQuotes(quotes), {parse_mode: 'Markdown'});
-  ctx.editMessageReplyMarkup(buildPaginationKeyboard(page, CallbackCommand.STARRED));
+  const quotes = await getQuotesLiked(ctx.from.id, page);
+  ctx.editMessageText(formatQuotes(quotes), {
+    parse_mode: 'Markdown', 
+    reply_markup: buildPaginationKeyboard(page, CallbackCommand.STARRED, !quotes.length)
+  });
 }
 
 bot.on('callback_query', async (ctx) => {
 
   if (ctx.callbackQuery && ctx.from) {
     const args = ctx.callbackQuery.data.split(callbackSep);
+    let toast = "";
 
     //args[0] == type of callback
     switch (args[0]) {
       case CallbackCommand.LIKE:
         //args[1] == id of quote
-        await likeCallbackHandler(args[1], ctx.from)
+        toast = await likeCallbackHandler(args[1], ctx.from)
         break;
       case CallbackCommand.STARRED:
         //args[1] == page number
@@ -179,7 +175,7 @@ bot.on('callback_query', async (ctx) => {
         });
         break;
     }
-    ctx.answerCbQuery();
+    ctx.answerCbQuery(toast);
   }
 });
 
@@ -219,7 +215,7 @@ bot.command('recommendquote', (ctx) => {
 
 bot.command('starred', async (ctx) => {
   if (ctx.from && ctx.from.id) {
-    const quotes = await getQuotesLiked(ctx.from.id);
+    const quotes = await getQuotesLiked(ctx.from.id, 0);
     ctx.replyWithMarkdown(formatQuotes(quotes), {
       reply_markup: buildPaginationKeyboard(0, CallbackCommand.STARRED)
     });

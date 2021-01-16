@@ -43,12 +43,15 @@ bot.on('inline_query', async (ctx) => {
   const query = ctx.inlineQuery;
   if (query) {
     const quotes = [];
+
+    // First search by id (for share function)
     const quote = await documentDAO.getQuoteById(query.query);
     if (quote != null) {
       quotes.push(quote); 
-    } else {
+    } else { // if no id matches, then search by author and text
       quotes.push(...(await documentDAO.getQuotesByAuthor(query.query)));
-      quotes.push(...(await (await documentDAO.getQuotes(query.query)).filter(q => !quotes.map(q => q._id).includes(q._id))));
+      quotes.push(...(await (await documentDAO.getQuotes(query.query))
+        .filter(q => !quotes.map(q => q._id).includes(q._id))));
     }
 
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
@@ -95,6 +98,7 @@ bot.on('callback_query', async (ctx) => {
       case 'like':
         await likeCallbackHandler(args[1], ctx.from)
     }
+    ctx.answerCbQuery();
   }
 });
 
@@ -102,7 +106,9 @@ bot.on('callback_query', async (ctx) => {
 bot.command('random', async (ctx) => {
   const randomQuote = await documentDAO.getRandomQuote();
   const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
-  ctx.reply(answer);
+  ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
+    reply_markup: buildLikeKeyboard(randomQuote._id)
+  });
 });
 
 bot.command('help', (ctx) => {

@@ -21,7 +21,6 @@ class DocumentDAO {
                 this.client = client;
                 this.db = client.db(this.DB_NAME);
                 this.collection = this.db.collection('quote-db');
-                this.db.dropDatabase();
                 resolve(null);
             });
         });
@@ -32,7 +31,10 @@ class DocumentDAO {
     }
 
     async insertQuote(quote: Partial<Quote>) {
-        await this.collection.insertOne(quote);
+        await this.collection.insertOne(quote, function(err, res) {
+          if (err) throw err;
+          console.log("1 document inserted");
+        });
     }
 
     async getQuotes(search: string): Promise<Quote[]> {

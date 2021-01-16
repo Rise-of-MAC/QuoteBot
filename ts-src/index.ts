@@ -85,6 +85,12 @@ bot.on('callback_query', async (ctx) => {
 });
 
 
+bot.command('random', async (ctx) => {
+
+  const randomQuote = await documentDAO.getRandomQuote(2); 
+  ctx.reply(randomQuote[0].text);
+});
+
 bot.command('help', (ctx) => {
   ctx.reply(`
 TODO

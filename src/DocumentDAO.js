@@ -23,7 +23,6 @@ class DocumentDAO {
                     this.client = client;
                     this.db = client.db(this.DB_NAME);
                     this.collection = this.db.collection('quote-db');
-                    this.db.dropDatabase();
                     resolve(null);
                 });
             });
@@ -36,7 +35,11 @@ class DocumentDAO {
     }
     insertQuote(quote) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.collection.insertOne(quote);
+            yield this.collection.insertOne(quote, function (err, res) {
+                if (err)
+                    throw err;
+                console.log("1 document inserted");
+            });
         });
     }
     getQuotes(search) {

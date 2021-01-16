@@ -110,6 +110,57 @@ class GraphDAO {
     });
   }
 
+  async getMyTopFiveTags(user: User){
+    await this.run(`
+      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+      RETURN t, count(*)
+      ORDER BY count(*) desc
+      LIMIT 5
+    `, {
+      userId: user.id
+    });
+  }
+
+  async getRecommandation(user: User, tag: Tag){
+    await this.run(`
+      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+      MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+      WHERE NOT (u)-[:LIKED]->(q2)
+      WITH q2, rand() AS r
+      ORDER BY r
+      RETURN q2
+      LIMIT 1
+    `, {
+      userId: user.id,
+      $tagId: tag.id
+    });
+  }
+
+  //LIKE a quote: MATCH (u:User{id: "1"}) MERGE (u)-[l:LIKED]->(q:Quote{id:13 })
+
+//-------------------------WIP Complex request--------------------------
+//Get the tags that belong to the quotes a user liked and the amount of likes
+//MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) RETURN t, count(*)
+
+//Get my top authors that wrote quotes I liked
+// MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author) RETURN a LIMIT 10
+
+//MATCH (u:User{id: "1"})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id: "1"})
+//RETURN q2
+
+// Complex recomandation request! (manque: top x des auteurs, mais c'est pas une bonne idée; filter par nombre de likes)
+// MATCH (u:User{id: 136451861})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+// MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:30})
+// WHERE NOT (u)-[:LIKED]->(q2)
+// WITH q2, rand() AS r
+// ORDER BY r
+// RETURN q2
+// LIMIT 1
+
+
+
+
+
   
 
 //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------

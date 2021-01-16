@@ -37,22 +37,26 @@ function formatQuote(content: string, author: string): string {
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
   // TODO: Uncomment when DAO is ready
+  console.log("merde")
 
-  // const query = ctx.inlineQuery;
-  // if (query) {
-  //   const quotes = await documentDAO.getQuotes(query.query);
-  //   const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
-  //     id: quote._id,
-  //     type: 'article',
-  //     title: quote.author,
-  //     description: quote.content,
-  //     reply_markup: buildLikeKeyboard(quote._id),
-  //     input_message_content: {
-  //       message_text: formatQuote(quote.content, quote.author)
-  //     },
-  //   }));
-  //   ctx.answerInlineQuery(answer);
-  // }
+  const query = ctx.inlineQuery;
+  if (query) {
+    console.log(query.query);
+    const quotes = await documentDAO.getQuotes(query.query);
+    console.log(quotes);
+    const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
+      id: quote._id,
+      type: 'article',
+      title: quote.author,
+      description: quote.text,
+      reply_markup: buildLikeKeyboard(quote._id),
+      input_message_content: {
+        message_text: formatQuote(quote.text, quote.author),
+        parse_mode: "Markdown"
+      },
+    }));
+    ctx.answerInlineQuery(answer);
+  }
 });
 
 // User chose a movie from the list displayed in the inline query

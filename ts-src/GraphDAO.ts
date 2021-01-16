@@ -40,10 +40,10 @@ class GraphDAO {
    //Link an author to a quote. If it did not exist, creates the author
    async upsertAuthor(quoteId: string, author: Author) {
     return await this.run(`
-      MATCH (q:Quote{ id: $quoteId })
+      MATCH (q:Quote{id: $quoteId})
       MERGE (a:Author{id: $authorId})
         ON CREATE SET a.name = $authorName
-      MERGE (a)-[r:WROTE]->(m)
+      MERGE (a)-[r:WROTE]->(q)
     `, {
       quoteId,
       authorId: author.id,

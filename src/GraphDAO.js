@@ -112,29 +112,41 @@ class GraphDAO {
     }
     getMyTopFiveTags(user) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.run(`
-      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
-      RETURN t, count(*)
-      ORDER BY count(*) desc
-      LIMIT 5
-    `, {
+            return yield this.run(`
+    MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+    RETURN t, count(*)
+    ORDER BY count(*) desc
+    LIMIT 5
+  `, {
                 userId: user.id
+            }).then((res) => {
+                if (res.records.length === 0)
+                    return [];
+                else {
+                    return res.records.map(q => ({ id: q.get('t').properties.id, name: q.get('t').properties.name }));
+                }
             });
         });
     }
-    getRecommandation(user, tag) {
+    getRecommandation(user, tagId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.run(`
-      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
-      MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
-      WHERE NOT (u)-[:LIKED]->(q2)
-      WITH q2, rand() AS r
-      ORDER BY r
-      RETURN q2
-      LIMIT 1
-    `, {
+            return yield this.run(`
+    MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+    MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+    WHERE NOT (u)-[:LIKED]->(q2)
+    WITH q2, rand() AS r
+    ORDER BY r
+    RETURN q2
+    LIMIT 1
+  `, {
                 userId: user.id,
-                $tagId: tag.id
+                tagId: tagId
+            }).then((res) => {
+                if (res.records.length === 0)
+                    return [];
+                else {
+                    return res.records[0].get('q2').properties.id;
+                }
             });
         });
     }
@@ -154,6 +166,23 @@ class GraphDAO {
     // ORDER BY r
     // RETURN q2
     // LIMIT 1
+    getQuotesLiked(userId, limit, page) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const offset = page * limit;
+            return yield this.run('MATCH (:User{id: $userId})-[LIKED]-(q:Quote) RETURN q ORDER BY q.id SKIP $offset LIMIT $limit', {
+                userId,
+                offset,
+                limit,
+            }).then((res) => {
+                if (res.records.length === 0)
+                    return [];
+                else {
+                    const record = res.records[0].get('q');
+                    return res.records.map(q => q.get('q').properties.id);
+                }
+            });
+        });
+    }
     //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------
     // async getMovieLiked(userId: number, movieId: string): Promise<Liked | null> {
     //   return await this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Movie{id: $movieId}) RETURN l', {

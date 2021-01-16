@@ -11,6 +11,7 @@ import {Liked, Tag, User, Quote} from "./Model";
 enum CallbackCommand {
   LIKE = 'like',
   STARRED = 'starred',
+  RECOMMANDATION = 'recommandation',
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -43,18 +44,14 @@ function buildQuoteKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboar
 }
 
 function buildRecommandationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
-  return {
-    inline_keyboard: [[
-      {
-        text: tags[0].name,
-        callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
-      },
-      {
-        text: "Share",
-        switch_inline_query: quoteId
-      }
-    ]],
+  let kb = []
+  for(var i = 0; i < 5 ; i++){
+    kb.push([{
+      text: tags[i].name,
+      callback_data: CallbackCommand.RECOMMANDATION + callbackSep + tags[i].id, // payload that will be retrieved when button is pressed
+    }]);
   }
+  return {inline_keyboard : kb};
 }
 
 function buildPaginationKeyboard(page: number, callbackCmd: CallbackCommand): InlineKeyboardMarkup {
@@ -166,6 +163,16 @@ bot.on('callback_query', async (ctx) => {
         //args[1] == page number
         await starredCallbackHandler(parseInt(args[1]), ctx);
         break;
+      case CallbackCommand.RECOMMANDATION:
+        //args[1] = tag id
+        const tagId = parseInt(args[1]);
+        console.log("tag id = " + tagId)
+        const quoteId : string = await graphDAO.getRecommandation(ctx.from, tagId)
+        const quote = await documentDAO.getQuoteById(quoteId)
+        ctx.replyWithMarkdown(formatQuote(quote.text, quote.author), {
+          reply_markup: buildQuoteKeyboard(quote._id)
+        });
+        break;
     }
     ctx.answerCbQuery();
   }
@@ -174,18 +181,17 @@ bot.on('callback_query', async (ctx) => {
 
 bot.command('random', async (ctx) => {
   const randomQuote = await documentDAO.getRandomQuote();
-  const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
   ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
     reply_markup: buildQuoteKeyboard(randomQuote._id)
   });
 });
 
 bot.command('recommand', async (ctx) => {
-  await graphDAO.upsertUser(ctx.from)
-  const tags = await graphDAO.getMyTopFiveTags(ctx.from);
-  const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
-  ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
-    reply_markup: buildLikeKeyboard(randomQuote._id)
+  await graphDAO.upsertUser(ctx.from);
+  const tags : Tag[] = await graphDAO.getMyTopFiveTags(ctx.from);
+  console.log(tags);
+  ctx.replyWithMarkdown("Please choose a tag", {
+    reply_markup: buildRecommandationsKeyboard(tags)
   });
 });
 

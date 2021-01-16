@@ -110,29 +110,39 @@ class GraphDAO {
     });
   }
 
-  async getMyTopFiveTags(user: User){
-    await this.run(`
-      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
-      RETURN t, count(*)
-      ORDER BY count(*) desc
-      LIMIT 5
-    `, {
-      userId: user.id
+  async getMyTopFiveTags(user: User) : Promise<Tag[]>{
+    return await this.run(`
+    MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+    RETURN t, count(*)
+    ORDER BY count(*) desc
+    LIMIT 5
+  `, {
+    userId: user.id
+  }).then((res) => {
+      if (res.records.length === 0) return [];
+      else {
+        return res.records.map(q => ({id: q.get('t').properties.id, name:  q.get('t').properties.name}));
+      }
     });
   }
 
-  async getRecommandation(user: User, tag: Tag){
-    await this.run(`
-      MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
-      MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
-      WHERE NOT (u)-[:LIKED]->(q2)
-      WITH q2, rand() AS r
-      ORDER BY r
-      RETURN q2
-      LIMIT 1
-    `, {
-      userId: user.id,
-      $tagId: tag.id
+  async getRecommandation(user: User, tagId: number){
+    return await this.run(`
+    MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+    MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+    WHERE NOT (u)-[:LIKED]->(q2)
+    WITH q2, rand() AS r
+    ORDER BY r
+    RETURN q2
+    LIMIT 1
+  `, {
+    userId: user.id,
+    tagId: tagId
+  }).then((res) => {
+      if (res.records.length === 0) return [];
+      else {
+        return res.records[0].get('q2').properties.id;
+      }
     });
   }
 

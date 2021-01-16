@@ -106,7 +106,9 @@ bot.on('callback_query', async (ctx) => {
 bot.command('random', async (ctx) => {
   const randomQuote = await documentDAO.getRandomQuote();
   const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
-  ctx.reply(answer);
+  ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
+    reply_markup: buildLikeKeyboard(randomQuote._id)
+  });
 });
 
 bot.command('help', (ctx) => {

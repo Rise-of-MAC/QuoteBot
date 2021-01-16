@@ -98,6 +98,7 @@ bot.on('callback_query', async (ctx) => {
       case 'like':
         await likeCallbackHandler(args[1], ctx.from)
     }
+    ctx.answerCbQuery();
   }
 });
 

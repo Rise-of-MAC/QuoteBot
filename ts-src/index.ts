@@ -42,16 +42,14 @@ function formatQuote(content: string, author: string): string {
 bot.on('inline_query', async (ctx) => {
   const query = ctx.inlineQuery;
   if (query) {
-    let quotes = [];
+    const quotes = [];
     const quote = await documentDAO.getQuoteById(query.query);
     if (quote != null) {
       quotes.push(quote); 
     } else {
-      // quotes = await documentDAO.getQuotesByAuthor(query.query);
-      quotes.push(...(await documentDAO.getQuotes(query.query)));
+      quotes.push(...(await documentDAO.getQuotesByAuthor(query.query)));
+      quotes.push(...(await (await documentDAO.getQuotes(query.query)).filter(q => !quotes.map(q => q._id).includes(q._id))));
     }
-
-    console.log(quotes);
 
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
       id: quote._id,
@@ -64,7 +62,6 @@ bot.on('inline_query', async (ctx) => {
         parse_mode: "Markdown"
       },
     }));
-    console.log(answer);
     ctx.answerInlineQuery(answer);
   }
 });

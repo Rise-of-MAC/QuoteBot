@@ -38,11 +38,11 @@ class DocumentDAO {
     }
 
     async getQuotes(search: string): Promise<Quote[]> {
-        return await this.collection.find({ 'text': new RegExp(search) }).limit(10).toArray();
+        return await this.collection.find({ 'text': new RegExp(search, 'i') }).limit(10).toArray();
     }
 
     async getQuotesByAuthor(search: string): Promise<Quote[]> {
-        return await this.collection.find({ 'author': new RegExp(search) }).limit(10).toArray();
+        return await this.collection.find({ 'author': new RegExp(search, 'i') }).limit(10).toArray();
     }
 
     async getQuoteById(id: string): Promise<Quote> {

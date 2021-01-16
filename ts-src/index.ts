@@ -86,9 +86,9 @@ bot.on('callback_query', async (ctx) => {
 
 
 bot.command('random', async (ctx) => {
-
-  const randomQuote = await documentDAO.getRandomQuote(2); 
-  ctx.reply(randomQuote[0].text);
+  const randomQuote = await documentDAO.getRandomQuote();
+  const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
+  ctx.reply(answer);
 });
 
 bot.command('help', (ctx) => {

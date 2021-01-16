@@ -41,12 +41,20 @@ class DocumentDAO {
         return await this.collection.find({ 'text': new RegExp(search) }).limit(10).toArray();
     }
 
+    async getQuotesByAuthor(search: string): Promise<Quote[]> {
+        return await this.collection.find({ 'author': new RegExp(search) }).limit(10).toArray();
+    }
+
     async getQuoteById(id: string): Promise<Quote> {
         return await this.collection.findOne({ _id: id });
     }
 
-    async getRandomQuote(n: number) {
-        return await this.collection.find().limit(n).toArray();
+    async getRandomQuote() {
+
+        const quotes = await this.getAllQuotes();
+        const r =  Math.floor(Math.random() * (0 - quotes.length) + quotes.length);
+        const randomQuote = quotes[r];
+        return randomQuote;
     }
 
     async getAllQuotes(): Promise<Quote[]> {

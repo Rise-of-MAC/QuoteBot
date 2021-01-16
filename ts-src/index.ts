@@ -2,15 +2,23 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-import { Telegraf } from 'telegraf';
+import { Context, Telegraf } from 'telegraf';
 import { InlineKeyboardMarkup, InlineQueryResultArticle } from 'telegraf/typings/telegram-types';
 import DocumentDAO from './DocumentDAO';
 import GraphDAO from './GraphDAO';
-import {Liked, Tag, User} from "./Model";
+import {Liked, Tag, User, Quote} from "./Model";
+
+enum CallbackCommand {
+  LIKE = 'like',
+  STARRED = 'starred',
+}
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const graphDAO = new GraphDAO();
 const documentDAO = new DocumentDAO();
+
+const callbackSep = '__';
+const quotesPerPage = 5;
 
 function stripMargin(template: TemplateStringsArray, ...expressions: any[]) {
   const result = template.reduce((accumulator, part, i) => {
@@ -19,13 +27,12 @@ function stripMargin(template: TemplateStringsArray, ...expressions: any[]) {
   return result.replace(/(\n|\r|\r\n)\s*\|/g, '$1');
 }
 
-
-function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboardMarkup {
+function buildQuoteKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboardMarkup {
   return {
     inline_keyboard: [[
       {
         text: "Love it! 💓",
-        callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
+        callback_data: CallbackCommand.LIKE + callbackSep + quoteId, // payload that will be retrieved when button is pressed
       },
       {
         text: "Share",
@@ -50,9 +57,42 @@ function buildRecommandationsKeyboard(tags: Tag[]): InlineKeyboardMarkup {
   }
 }
 
+function buildPaginationKeyboard(page: number, callbackCmd: CallbackCommand): InlineKeyboardMarkup {
+  const buttons = []
+  if (page > 0) {
+    buttons.push({
+      text: "« Previous",
+      callback_data: callbackCmd + callbackSep + (page - 1)
+    })
+  }
+
+  buttons.push({
+    text: "Next »",
+    callback_data: callbackCmd + callbackSep + (page + 1)
+  })
+
+  return {
+    inline_keyboard: [buttons]
+  };
+}
 
 function formatQuote(content: string, author: string): string {
   return '*' + content + '*\n\n_' + author + '_'
+}
+
+function formatQuotes(quotes: Quote[]): string {
+  const text = quotes.map(q => formatQuote(q.text, q.author)).reduce((p, c) => p + c + '\n\n\n', '');
+  return text.length ? text : 'Like more quotes to see them here!';
+}
+
+async function getQuotesLiked(userId: number): Promise<Quote[]> {
+  const quotesId = await graphDAO.getQuotesLiked(userId, quotesPerPage, 0);
+  const quotes = [];
+  for (const id of quotesId) {
+    const quote = await documentDAO.getQuoteById(id)
+    quotes.push(quote);
+  }
+  return quotes;
 }
 
 // User is using the inline query mode on the bot
@@ -63,11 +103,11 @@ bot.on('inline_query', async (ctx) => {
 
     // First search by id (for share function)
     const quote = await documentDAO.getQuoteById(query.query);
-    if (quote != null) {
+    if (quote !== null) {
       quotes.push(quote); 
     } else { // if no id matches, then search by author and text
       quotes.push(...(await documentDAO.getQuotesByAuthor(query.query)));
-      quotes.push(...(await (await documentDAO.getQuotes(query.query))
+      quotes.push(...((await documentDAO.getQuotes(query.query))
         .filter(q => !quotes.map(q => q._id).includes(q._id))));
     }
 
@@ -76,7 +116,7 @@ bot.on('inline_query', async (ctx) => {
       type: 'article',
       title: quote.author,
       description: quote.text,
-      reply_markup: buildLikeKeyboard(quote._id),
+      reply_markup: buildQuoteKeyboard(quote._id),
       input_message_content: {
         message_text: formatQuote(quote.text, quote.author),
         parse_mode: "Markdown"
@@ -104,20 +144,28 @@ async function likeCallbackHandler(quoteId: string, user : User ) {
     await graphDAO.upsertQuoteLiked(user, quoteId);
 }
 
+async function starredCallbackHandler(page: number, ctx: Context) {
+  console.log('page = ' + page)
+  const quotes = await getQuotesLiked(ctx.from.id);
+  ctx.editMessageText(formatQuotes(quotes), {parse_mode: 'Markdown'});
+  ctx.editMessageReplyMarkup(buildPaginationKeyboard(page, CallbackCommand.STARRED));
+}
+
 bot.on('callback_query', async (ctx) => {
 
   if (ctx.callbackQuery && ctx.from) {
-    const args = ctx.callbackQuery.data.split('__');
+    const args = ctx.callbackQuery.data.split(callbackSep);
 
     //args[0] == type of callback
-    //args[1] == id of quote
     switch (args[0]) {
-      case 'like':
+      case CallbackCommand.LIKE:
+        //args[1] == id of quote
         await likeCallbackHandler(args[1], ctx.from)
         break;
-      case 'recommandation':
+      case CallbackCommand.STARRED:
+        //args[1] == page number
+        await starredCallbackHandler(parseInt(args[1]), ctx);
         break;
-
     }
     ctx.answerCbQuery();
   }
@@ -128,7 +176,7 @@ bot.command('random', async (ctx) => {
   const randomQuote = await documentDAO.getRandomQuote();
   const answer : string = randomQuote.author + " once said : " + randomQuote.text; 
   ctx.replyWithMarkdown(formatQuote(randomQuote.text, randomQuote.author), {
-    reply_markup: buildLikeKeyboard(randomQuote._id)
+    reply_markup: buildQuoteKeyboard(randomQuote._id)
   });
 });
 
@@ -156,6 +204,15 @@ bot.command('recommendquote', (ctx) => {
     ctx.reply('We cannot guess who you are');
   } else {
     // TODO: call Geo4J (and MongoDB?) backend
+  }
+});
+
+bot.command('starred', async (ctx) => {
+  if (ctx.from && ctx.from.id) {
+    const quotes = await getQuotesLiked(ctx.from.id);
+    ctx.replyWithMarkdown(formatQuotes(quotes), {
+      reply_markup: buildPaginationKeyboard(0, CallbackCommand.STARRED)
+    });
   }
 });
 

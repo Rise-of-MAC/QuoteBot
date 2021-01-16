@@ -43,12 +43,15 @@ bot.on('inline_query', async (ctx) => {
   const query = ctx.inlineQuery;
   if (query) {
     const quotes = [];
+
+    // First search by id (for share function)
     const quote = await documentDAO.getQuoteById(query.query);
     if (quote != null) {
       quotes.push(quote); 
-    } else {
+    } else { // if no id matches, then search by author and text
       quotes.push(...(await documentDAO.getQuotesByAuthor(query.query)));
-      quotes.push(...(await (await documentDAO.getQuotes(query.query)).filter(q => !quotes.map(q => q._id).includes(q._id))));
+      quotes.push(...(await (await documentDAO.getQuotes(query.query))
+        .filter(q => !quotes.map(q => q._id).includes(q._id))));
     }
 
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({

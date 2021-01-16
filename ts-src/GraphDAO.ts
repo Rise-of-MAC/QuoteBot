@@ -171,6 +171,13 @@ class GraphDAO {
     });
   }
 
+  async getQuoteLiked(userId: number, quoteId: string): Promise<boolean> {
+    return await this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Quote{id: $quoteId}) RETURN l', {
+      userId,
+      quoteId,
+    }).then((res) => !!res.records.length);
+  }
+
 
 //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------
 

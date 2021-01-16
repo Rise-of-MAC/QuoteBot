@@ -113,21 +113,13 @@ bot.on('inline_query', async (ctx) => {
   }
 });
 
-// User chose a movie from the list displayed in the inline query
-// Used to update the keyboard and show filled stars if user already liked it
-bot.on('chosen_inline_result', async (ctx) => {
+async function likeCallbackHandler(quoteId: string, user : User ): Promise<string | ""> {
+    const liked = await graphDAO.getQuoteLiked(user.id, quoteId);
 
-  // TODO: decide if we need something similar
-
-  // if (ctx.from && ctx.chosenInlineResult) {
-  //   const liked = await graphDAO.getMovieLiked(ctx.from.id, ctx.chosenInlineResult.result_id);
-  //   if (liked !== null) {
-  //     ctx.editMessageReplyMarkup(buildLikeKeyboard(ctx.chosenInlineResult.result_id, liked));
-  //   }
-  // }
-});
-
-async function likeCallbackHandler(quoteId: string, user : User ) {
+    if (liked) {
+      return "You already love this glorious quote"
+    }
+    
     await graphDAO.upsertQuoteLiked(user, quoteId);
 }
 
@@ -143,19 +135,20 @@ bot.on('callback_query', async (ctx) => {
 
   if (ctx.callbackQuery && ctx.from) {
     const args = ctx.callbackQuery.data.split(callbackSep);
+    let toast = "";
 
     //args[0] == type of callback
     switch (args[0]) {
       case CallbackCommand.LIKE:
         //args[1] == id of quote
-        await likeCallbackHandler(args[1], ctx.from)
+        toast = await likeCallbackHandler(args[1], ctx.from)
         break;
       case CallbackCommand.STARRED:
         //args[1] == page number
         await starredCallbackHandler(parseInt(args[1]), ctx);
         break;
     }
-    ctx.answerCbQuery();
+    ctx.answerCbQuery(toast);
   }
 });
 

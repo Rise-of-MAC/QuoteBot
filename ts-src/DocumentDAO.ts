@@ -41,7 +41,7 @@ class DocumentDAO {
         return await this.collection.find({ 'text': new RegExp(search) }).limit(10).toArray();
     }
 
-    async getQuoteById(id: string) {
+    async getQuoteById(id: string): Promise<Quote> {
         return await this.collection.findOne({ _id: id });
     }
 

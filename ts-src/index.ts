@@ -37,13 +37,17 @@ function formatQuote(content: string, author: string): string {
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
   // TODO: Uncomment when DAO is ready
-  console.log("merde")
-
   const query = ctx.inlineQuery;
   if (query) {
-    console.log(query.query);
-    const quotes = await documentDAO.getQuotes(query.query);
-    console.log(quotes);
+    let quotes = [];
+    const quote = await documentDAO.getQuoteById(query.query);
+    if (quote != null) {
+      quotes.push(quote); 
+    } else {
+      quotes = await documentDAO.getQuotes(query.query);
+    }
+
+    console.log(quotes)
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
       id: quote._id,
       type: 'article',

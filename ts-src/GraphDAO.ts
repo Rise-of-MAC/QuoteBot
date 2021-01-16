@@ -157,11 +157,21 @@ class GraphDAO {
 // RETURN q2
 // LIMIT 1
 
+  async getQuotesLiked(userId: number, limit: number, page: number): Promise<string[]> {
+    const offset = page * limit;
+    return await this.run('MATCH (:User{id: $userId})-[LIKED]-(q:Quote) RETURN q ORDER BY q.id SKIP $offset LIMIT $limit', {
+      userId,
+      offset,
+      limit,
+    }).then((res) => {
+      if (res.records.length === 0) return [];
+      else {
+        const record = res.records[0].get('q');
+        return res.records.map(q => q.get('q').properties.id);
+      }
+    });
+  }
 
-
-
-
-  
 
 //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------
 

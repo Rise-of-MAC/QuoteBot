@@ -166,7 +166,6 @@ class GraphDAO {
     }).then((res) => {
       if (res.records.length === 0) return [];
       else {
-        const record = res.records[0].get('q');
         return res.records.map(q => q.get('q').properties.id);
       }
     });

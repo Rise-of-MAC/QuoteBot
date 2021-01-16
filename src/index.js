@@ -76,6 +76,10 @@ bot.on('callback_query', (ctx) => __awaiter(void 0, void 0, void 0, function* ()
         }
     }
 }));
+bot.command('random', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
+    const randomQuote = yield documentDAO.getRandomQuote(2);
+    ctx.reply(randomQuote[0].text);
+}));
 bot.command('help', (ctx) => {
     ctx.reply(`
 TODO

@@ -26,6 +26,10 @@ function buildLikeKeyboard(quoteId: string, currentLike?: Liked): InlineKeyboard
         text: "Love it! 💓",
         callback_data: 'like__' + quoteId, // payload that will be retrieved when button is pressed
       },
+      {
+        text: "Share",
+        switch_inline_query: quoteId
+      }
     ]],
   }
 }
@@ -36,7 +40,6 @@ function formatQuote(content: string, author: string): string {
 
 // User is using the inline query mode on the bot
 bot.on('inline_query', async (ctx) => {
-  // TODO: Uncomment when DAO is ready
   const query = ctx.inlineQuery;
   if (query) {
     let quotes = [];
@@ -44,10 +47,12 @@ bot.on('inline_query', async (ctx) => {
     if (quote != null) {
       quotes.push(quote); 
     } else {
-      quotes = await documentDAO.getQuotes(query.query);
+      // quotes = await documentDAO.getQuotesByAuthor(query.query);
+      quotes.push(...(await documentDAO.getQuotes(query.query)));
     }
 
-    console.log(quotes)
+    console.log(quotes);
+
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
       id: quote._id,
       type: 'article',
@@ -59,6 +64,7 @@ bot.on('inline_query', async (ctx) => {
         parse_mode: "Markdown"
       },
     }));
+    console.log(answer);
     ctx.answerInlineQuery(answer);
   }
 });

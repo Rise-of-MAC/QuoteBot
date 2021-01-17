@@ -205,13 +205,13 @@ bot.command('start', (ctx) => {
   ctx.replyWithMarkdown('*You\'re doing quite well.*\n\n_GlaDOS (ironically)_');
 });
 
-bot.command('recommendquote', (ctx) => {
-  if (!ctx.from || !ctx.from.id) {
-    ctx.reply('We cannot guess who you are');
-  } else {
-    // TODO: call Geo4J (and MongoDB?) backend
-  }
-});
+// bot.command('recommendquote', (ctx) => {
+//   if (!ctx.from || !ctx.from.id) {
+//     ctx.reply('We cannot guess who you are');
+//   } else {
+//     // TODO: call Geo4J (and MongoDB?) backend
+//   }
+// });
 
 bot.command('starred', async (ctx) => {
   if (ctx.from && ctx.from.id) {

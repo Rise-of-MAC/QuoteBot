@@ -10,6 +10,25 @@ Une fois un nom choisi et validé, il vous retourne le token
 Crée un fichier **.env** dans le dossier **src/** , et rajouter la ligne suivante : 
 ```BOT_TOKEN=<votre token>```
 
-## C'est parti !
-Lancer la commande ```node quoteBot.js``` depuis le dossier **src/**, et tester si tout marche en envoyant un message au bot sur telegram.
+### 4. Bases de données
+Lancez les bases de données avec ```docker-compose up``` depuis la racine du projet  
+
+### 5. Importer les données
+Importez les données de base dans l'application avec ```npm run ts-import```
+
+### 6. C'est parti !
+Lancer la commande ```npm run ts-start``` depuis la racine, et tester si tout marche en envoyant un message au bot sur telegram.
+
+## Liste des commandes
+
+### /random
+Obtient une citation aléatoire parmi la base de données
+
+### /starred
+Obtient la liste paginée de toutes les citations aimées par l'utilisateur
+
+### /recommend
+Fournit une liste de tags recommandés par rapport aux citations aimées par l'utilisateur.  
+L'utilisateur peut sélectionner un tag et il obtiendra une citation du tag donnée écrite par un de ses auteurs préférés.  
+Si le bot manque de données pour trouver une citation recommandée, une citation aléatoire est donnée.
 

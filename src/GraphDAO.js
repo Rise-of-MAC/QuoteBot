@@ -178,10 +178,17 @@ class GraphDAO {
                 if (res.records.length === 0)
                     return [];
                 else {
-                    const record = res.records[0].get('q');
                     return res.records.map(q => q.get('q').properties.id);
                 }
             });
+        });
+    }
+    getQuoteLiked(userId, quoteId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.run('MATCH (:User{id: $userId})-[l:LIKED]-(:Quote{id: $quoteId}) RETURN l', {
+                userId,
+                quoteId,
+            }).then((res) => !!res.records.length);
         });
     }
     //---------------------------OLD CODE BUT USEFUL TO COPY -----------------------------------------------------------------

@@ -45,6 +45,8 @@ const mangoDataLoader = new MangoDataLoader(documentDAO);
 (async () => {
     console.log('Starting mongo');
     await documentDAO.init();
+    console.log('Drop database')
+    await documentDAO.resetDB();
 
     console.log('Preparing Neo4j');
     await graphDAO.prepare();

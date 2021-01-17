@@ -110,6 +110,7 @@ bot.on('inline_query', async (ctx) => {
         .filter(q => !quotes.map(q => q._id).includes(q._id))));
     }
 
+
     const answer: InlineQueryResultArticle[] = quotes.map((quote) => ({
       id: quote._id,
       type: 'article',
@@ -196,8 +197,14 @@ bot.command('recommend', async (ctx) => {
 });
 
 bot.command('help', (ctx) => {
+
   ctx.reply(`
-TODO
+      List of commands :
+      - /starred : Get liked quotes
+      - /recommend : Get a recommended quote
+      - /random : Get a random quote
+      Call the bot anywhere : 
+      - @botname <search terms>: Will display the list of quotes with searched terms 
   `);
 });
 

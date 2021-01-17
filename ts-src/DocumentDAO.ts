@@ -1,12 +1,11 @@
 import { Collection, Db, MongoClient } from "mongodb";
 import { Quote } from "./Model";
-// import * as dotenv from "dotenv";
-
 
 class DocumentDAO {
 
     private DB_HOST : string = "root:toor@localhost:27017"
     private DB_NAME : string = "quote-db"
+    private COLLECTION_NAME : string = "quote-db"
     private client: MongoClient;
 
     private db: Db;
@@ -20,7 +19,7 @@ class DocumentDAO {
                 if (err !== null) throw err;
                 this.client = client;
                 this.db = client.db(this.DB_NAME);
-                this.collection = this.db.collection('quote-db');
+                this.collection = this.db.collection(this.COLLECTION_NAME);
                 resolve(null);
             });
         });
@@ -33,7 +32,8 @@ class DocumentDAO {
     async insertQuote(quote: Partial<Quote>) {
         await this.collection.insertOne(quote, function(err, res) {
           if (err) throw err;
-          console.log("1 document inserted");
+          console.log("quote insered");
+          console.log(quote);
         });
     }
 
@@ -53,8 +53,7 @@ class DocumentDAO {
 
         const quotes = await this.getAllQuotes();
         const r =  Math.floor(Math.random() * (0 - quotes.length) + quotes.length);
-        const randomQuote = quotes[r];
-        return randomQuote;
+        return quotes[r];
     }
 
     async getAllQuotes(): Promise<Quote[]> {
@@ -62,6 +61,10 @@ class DocumentDAO {
             ...it,
             _id: it._id.toString()
         }));
+    }
+
+    async resetDB(){
+      this.db.dropDatabase();
     }
 }
 

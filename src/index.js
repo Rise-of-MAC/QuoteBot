@@ -53,7 +53,7 @@ function buildRecommendationsKeyboard(tags) {
     }
     return { inline_keyboard: kb };
 }
-function buildPaginationKeyboard(page, callbackCmd) {
+function buildPaginationKeyboard(page, callbackCmd, end) {
     const buttons = [];
     if (page > 0) {
         buttons.push({
@@ -61,10 +61,12 @@ function buildPaginationKeyboard(page, callbackCmd) {
             callback_data: callbackCmd + callbackSep + (page - 1)
         });
     }
-    buttons.push({
-        text: "Next »",
-        callback_data: callbackCmd + callbackSep + (page + 1)
-    });
+    if (!end) {
+        buttons.push({
+            text: "Next »",
+            callback_data: callbackCmd + callbackSep + (page + 1)
+        });
+    }
     return {
         inline_keyboard: [buttons]
     };
@@ -76,9 +78,9 @@ function formatQuotes(quotes) {
     const text = quotes.map(q => formatQuote(q.text, q.author)).reduce((p, c) => p + c + '\n\n\n', '');
     return text.length ? text : 'Like more quotes to see them here!';
 }
-function getQuotesLiked(userId) {
+function getQuotesLiked(userId, page) {
     return __awaiter(this, void 0, void 0, function* () {
-        const quotesId = yield graphDAO.getQuotesLiked(userId, quotesPerPage, 0);
+        const quotesId = yield graphDAO.getQuotesLiked(userId, quotesPerPage, page);
         const quotes = [];
         for (const id of quotesId) {
             const quote = yield documentDAO.getQuoteById(id);
@@ -116,38 +118,33 @@ bot.on('inline_query', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
         ctx.answerInlineQuery(answer);
     }
 }));
-// User chose a movie from the list displayed in the inline query
-// Used to update the keyboard and show filled stars if user already liked it
-bot.on('chosen_inline_result', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
-    // TODO: decide if we need something similar
-    // if (ctx.from && ctx.chosenInlineResult) {
-    //   const liked = await graphDAO.getMovieLiked(ctx.from.id, ctx.chosenInlineResult.result_id);
-    //   if (liked !== null) {
-    //     ctx.editMessageReplyMarkup(buildLikeKeyboard(ctx.chosenInlineResult.result_id, liked));
-    //   }
-    // }
-}));
 function likeCallbackHandler(quoteId, user) {
     return __awaiter(this, void 0, void 0, function* () {
+        const liked = yield graphDAO.getQuoteLiked(user.id, quoteId);
+        if (liked) {
+            return "You already love this glorious quote";
+        }
         yield graphDAO.upsertQuoteLiked(user, quoteId);
     });
 }
 function starredCallbackHandler(page, ctx) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('page = ' + page);
-        const quotes = yield getQuotesLiked(ctx.from.id);
-        ctx.editMessageText(formatQuotes(quotes), { parse_mode: 'Markdown' });
-        ctx.editMessageReplyMarkup(buildPaginationKeyboard(page, CallbackCommand.STARRED));
+        const quotes = yield getQuotesLiked(ctx.from.id, page);
+        ctx.editMessageText(formatQuotes(quotes), {
+            parse_mode: 'Markdown',
+            reply_markup: buildPaginationKeyboard(page, CallbackCommand.STARRED, !quotes.length)
+        });
     });
 }
 bot.on('callback_query', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if (ctx.callbackQuery && ctx.from) {
         const args = ctx.callbackQuery.data.split(callbackSep);
+        let toast = "";
         //args[0] == type of callback
         switch (args[0]) {
             case CallbackCommand.LIKE:
                 //args[1] == id of quote
-                yield likeCallbackHandler(args[1], ctx.from);
+                toast = yield likeCallbackHandler(args[1], ctx.from);
                 break;
             case CallbackCommand.STARRED:
                 //args[1] == page number
@@ -169,7 +166,7 @@ bot.on('callback_query', (ctx) => __awaiter(void 0, void 0, void 0, function* ()
                 });
                 break;
         }
-        ctx.answerCbQuery();
+        ctx.answerCbQuery(toast);
     }
 }));
 bot.command('random', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
@@ -203,7 +200,7 @@ bot.command('recommendquote', (ctx) => {
 });
 bot.command('starred', (ctx) => __awaiter(void 0, void 0, void 0, function* () {
     if (ctx.from && ctx.from.id) {
-        const quotes = yield getQuotesLiked(ctx.from.id);
+        const quotes = yield getQuotesLiked(ctx.from.id, 0);
         ctx.replyWithMarkdown(formatQuotes(quotes), {
             reply_markup: buildPaginationKeyboard(0, CallbackCommand.STARRED)
         });

@@ -37,7 +37,7 @@ Si le bot manque de données pour trouver une citation recommandée, une citatio
 ### MongoDB
 Dans la base de donnée MongoDB, nous avons définit 4 types d'entités différents : 
 
-##### Quote
+#### Quote
 Représente une citation <br>
 | Champs        | Type           |
 | ------------- |:-------------:|
@@ -56,7 +56,7 @@ Représente un auteur <br>
 | id     | number |
 | name     | string      | 
 
-##### User
+#### User
 Représente un utilisateur <br>
 | Champs        | Type           |
 | ------------- |:-------------:|

@@ -21,6 +21,9 @@ Lancer la commande ```npm run ts-start``` depuis la racine, et tester si tout ma
 
 ## Liste des commandes
 
+### /help
+Obtient la liste des commandes disponibles
+
 ### /random
 Obtient une citation aléatoire parmi la base de données
 

@@ -2,12 +2,13 @@
 
 ## Installation pour les dévs.
 ### 1. yarn
-Lancer la commande```yarn install``` à la racine du projet
+Lancer la commande ```yarn install``` à la racine du projet
 ### 2. Token Telegram
 Créer un nouveau bot et générer un token Telegram via le **BotFather** (@BotFather sur Telegram), via la commande `/newbot`. <br>
 Une fois un nom choisi et validé, il vous retourne le token
 
-Pour que le bot soit pleinement fonctionnel, il est nécessaire d'activer les requête _inline_ en envoyant la commande `/setinline` au **BotFather**.
+Pour que le bot soit pleinement fonctionnel, il est nécessaire d'activer les requêtes _inline_ en envoyant la commande `/setinline` au **BotFather**.
+
 ### 3. Fichier .env
 Créer un fichier **.env** (un fichier `.env.example` est fourni) à la racine du projet, et spécifier le token à la ligne suivante : 
 ```BOT_TOKEN=<token>```

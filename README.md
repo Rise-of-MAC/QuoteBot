@@ -4,7 +4,8 @@
 ### 1. yarn
 Lancer la commande ```yarn install``` à la racine du projet
 ### 2. Token Telegram
-Créer un nouveau bot et générer un token Telegram via le **BotFather** (@BotFather sur Telegram), via la commande `/newbot`. <br>
+Créer un nouveau bot et générer un token Telegram via le **BotFather** (@BotFather sur Telegram), via la commande `/newbot`.
+
 Une fois un nom choisi et validé, il vous retourne le token
 
 Pour que le bot soit pleinement fonctionnel, il est nécessaire d'activer les requêtes _inline_ en envoyant la commande `/setinline` au **BotFather**.
@@ -108,7 +109,7 @@ Renvoie les citations aimées de l'utilisateur, une pagination a été mise en p
 ### Recommandations
 
 ```
-MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:HASTAG]->(t:Tag) 
     RETURN t, count(*)
     ORDER BY count(*) desc
     LIMIT ` + amountOfRecommendedTags
@@ -118,7 +119,7 @@ Affichage du top 5 des tags préférés de l'utilisateur.
 
 ```
 MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
-    MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+    MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:HASTAG]->(t:Tag{id:$tagId})
     WHERE NOT (u)-[:LIKED]->(q2)
     WITH q2, rand() AS r
     ORDER BY r

@@ -22,6 +22,9 @@ Lancer la commande ```npm run ts-start``` depuis la racine, et tester si tout ma
 
 ## Liste des commandes
 
+### /help
+Obtient la liste des commandes disponibles
+
 ### /random
 Obtient une citation aléatoire parmi la base de données
 
@@ -38,14 +41,44 @@ Si le bot manque de données pour trouver une citation recommandée, une citatio
 ### MongoDB
 Dans la base de donnée MongoDB, nous avons définit 4 types d'entités différents : 
 
-##### Quote
+#### Quote
 Représente une citation <br>
 | Champs        | Type           |
 | ------------- |:-------------:|
 | _id     | string |
 | text     | string      | 
 | author | string      |
+| tags | string      |
+| likes | number      |
+| language | string      |
+| added | Date      |
 
+
+#### Author
+Représente un auteur <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| id     | number |
+| name     | string      | 
+
+#### User
+Représente un utilisateur <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| username  (not mandatory)     | string |
+| last_name (not mandatory)     | string      | 
+| first_name (not mandatory)     | string      | 
+| id | number      |
+| is_bot | string      |
+| likes | number      |
+| language_code (not mandatory) | string      |
+
+#### Liked
+Représente un like <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| at     | Date |
+| rank     | number      | 
 
 ## Requêtes
 
@@ -82,4 +115,3 @@ Parmi les quotes likées, on cherche ses auteurs préférés.
 On cherche des citations (pas encore likées) du tag choisi parmi ses auteurs préférés.
 On en prend une aléatoirement parmi ce set et on l’affiche.
 Si le bot manque de données pour trouver une citation recommandée, une citation aléatoire est donnée.
-

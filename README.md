@@ -32,3 +32,16 @@ Fournit une liste de tags recommandés par rapport aux citations aimées par l'u
 L'utilisateur peut sélectionner un tag et il obtiendra une citation du tag donnée écrite par un de ses auteurs préférés.  
 Si le bot manque de données pour trouver une citation recommandée, une citation aléatoire est donnée.
 
+
+## Modèle de données
+### MongoDB
+Dans la base de donnée MongoDB, nous avons définit 4 types d'entités différents : 
+
+##### Quote
+Représente une citation <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| _id     | string |
+| text     | string      | 
+| author | string      |
+

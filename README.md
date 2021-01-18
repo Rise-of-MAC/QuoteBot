@@ -44,4 +44,33 @@ Représente une citation <br>
 | _id     | string |
 | text     | string      | 
 | author | string      |
+| tags | string      |
+| likes | number      |
+| language | string      |
+| added | Date      |
 
+#### Author
+Représente un auteur <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| id     | number |
+| name     | string      | 
+
+##### User
+Représente un utilisateur <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| username  (not mandatory)     | string |
+| last_name (not mandatory)     | string      | 
+| first_name (not mandatory)     | string      | 
+| id | number      |
+| is_bot | string      |
+| likes | number      |
+| language_code (not mandatory) | string      |
+
+#### Liked
+Représente un like <br>
+| Champs        | Type           |
+| ------------- |:-------------:|
+| at     | Date |
+| rank     | number      | 

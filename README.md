@@ -81,6 +81,20 @@ Représente un like <br>
 | at     | Date |
 | rank     | number      | 
 
+## Neo4j
+
+### Tags
+- `User` (id, isBot, fisrtName, username, languageCode) : Représente un utilisateur de Telegram
+- `Quote` (id) : Pointe vers un document de citatoin de MongoDB
+- `Author` (id, nom) : Représente l'auteur d'une citation
+- `Tag` (id, nom) : Représente un tag (love, philosophy, funny, ...) d'une citation
+
+### Relations
+- `LIKED` (User -> Quote) : Indique qu'un utilisateur a aimé une citation
+- `WROTE` (Author -> Quote) : Indique qu'un auteur a écrit une citation
+- `HASTAG` (Quote -> Tag) : Indique qu'une citation est marquée par un Tag
+
+
 ## Requêtes
 
 ### Citations favorites

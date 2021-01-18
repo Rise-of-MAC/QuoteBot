@@ -4,12 +4,13 @@
 ### 1. yarn
 Lancer la commande```yarn install``` à la racine du projet
 ### 2. Token Telegram
-Créer un nouveau bot et générer un token Telegram via le **BotFather** (@BotFather sur Telegram), via la commande **/newbot**. <br>
+Créer un nouveau bot et générer un token Telegram via le **BotFather** (@BotFather sur Telegram), via la commande `/newbot`. <br>
 Une fois un nom choisi et validé, il vous retourne le token
-### 3. Fichier .env
-Crée un fichier **.env** dans le dossier **src/** , et rajouter la ligne suivante : 
-```BOT_TOKEN=<votre token>```
 
+Pour que le bot soit pleinement fonctionnel, il est nécessaire d'activer les requête _inline_ en envoyant la commande `/setinline` au **BotFather**.
+### 3. Fichier .env
+Créer un fichier **.env** (un fichier `.env.example` est fourni) à la racine du projet, et spécifier le token à la ligne suivante : 
+```BOT_TOKEN=<token>```
 ### 4. Bases de données
 Lancez les bases de données avec ```docker-compose up``` depuis la racine du projet  
 
@@ -44,4 +45,41 @@ Représente une citation <br>
 | _id     | string |
 | text     | string      | 
 | author | string      |
+
+
+## Requêtes
+
+### Citations favorites
+
+``` Neo4J
+MATCH (:User{id: $userId})-[LIKED]-(q:Quote) RETURN q ORDER BY q.id SKIP $offset LIMIT $limit
+```
+
+Renvoie les citations aimées de l'utilisateur, une pagination a été mise en place afin de ne pas surcharger l'affichage. Les citations sont ordrées par id afin de garantir qu'une citation ne se retrouve pas sur plusieurs pages lors de la navigation.
+
+### Recommandations
+
+```
+MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)-[l2:LABELS]->(t:Tag) 
+    RETURN t, count(*)
+    ORDER BY count(*) desc
+    LIMIT ` + amountOfRecommendedTags
+```
+
+Affichage du top 5 des tags préférés de l'utilisateur.
+
+```
+MATCH (u:User{id: $userId})-[l:LIKED]->(q:Quote)<-[w:WROTE]-(a:Author)
+    MATCH (a)-[w2:WROTE]->(q2:Quote)-[l2:LABELS]->(t:Tag{id:$tagId})
+    WHERE NOT (u)-[:LIKED]->(q2)
+    WITH q2, rand() AS r
+    ORDER BY r
+    RETURN q2
+    LIMIT 1
+```
+
+Parmi les quotes likées, on cherche ses auteurs préférés.
+On cherche des citations (pas encore likées) du tag choisi parmi ses auteurs préférés.
+On en prend une aléatoirement parmi ce set et on l’affiche.
+Si le bot manque de données pour trouver une citation recommandée, une citation aléatoire est donnée.
 
